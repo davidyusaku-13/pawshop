@@ -22,7 +22,7 @@ if (isset($_POST['submit'])) {
       }
       header('Location: index.php');
     } else {
-      $wrongpass = '<div class="alert alert-danger" role="alert">Username or password incorrect!</div>';
+      $wrongpass = '<div class="alert alert-danger" role="alert">Username atau password salah!</div>';
     }
   }
 }
@@ -55,7 +55,7 @@ if (isset($_POST['submit'])) {
     }
 
     .form-signin {
-      background-color: rgba(255, 255, 255, 0.3);
+      background-color: rgba(255, 255, 255, 0.5);
       padding: 20px;
     }
   </style>
@@ -66,17 +66,19 @@ if (isset($_POST['submit'])) {
   <main class="form-signin w-100 m-auto">
     <form action="" method="POST" autocomplete="off">
       <div class="text-center">
-        <a href="./index.php">
+        <a href="./index.php" tabindex="-1">
           <img class="img-fluid text-center mb-4" src="./logo.png" alt="logo.png">
         </a>
         <h1 class="text-center h3 mb-3 fw-bold">Masuk</h1>
       </div>
 
-      <div class="mb-3">
+      <div class="mb-3 form-floating">
         <input type="text" class="form-control" id="username" placeholder="Username" name="username" required>
+        <label for="username">Username</label>
       </div>
-      <div class="mb-3">
+      <div class="mb-3 form-floating">
         <input type="password" class="form-control" id="password" placeholder="Password" name="password" required>
+        <label for="username">Password</label>
       </div>
 
       <div class="form-check text-start my-3">
@@ -88,7 +90,7 @@ if (isset($_POST['submit'])) {
       <?= $wrongpass; ?>
       <button class="btn btn-primary w-100 py-2" name="submit" type="submit">Masuk</button>
       <p class="mt-1 text-center">Belum punya akun? <a href="./register.php">Daftar di sini</a></p>
-      <p class="text-center mt-5 text-body-secondary">&copy; 2023 Pawshop, Inc</p>
+      <p class="text-center text-body-secondary">&copy; 2023 Pawshop, Inc</p>
     </form>
   </main>
   <footer>

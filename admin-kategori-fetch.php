@@ -9,7 +9,7 @@ if ($_SESSION['privilege'] != 'admin') {
 if (isset($_GET['id'])) {
   $id = $_GET['id'];
 
-  $sql = "SELECT * FROM categories WHERE id=?";
+  $sql = "SELECT * FROM kategori WHERE id=?";
   $stmt = mysqli_prepare($conn, $sql);
   mysqli_stmt_bind_param($stmt, "i", $id);
   mysqli_stmt_execute($stmt);

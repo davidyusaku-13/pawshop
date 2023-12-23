@@ -77,13 +77,13 @@ if (isset($_POST['submit'])) {
             <div class="collapse navbar-collapse" id="mynavbar">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="./admin-transactions.php">Transaksi</a>
+                        <a class="nav-link" href="./admin-transaksi.php">Transaksi</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="./admin-products.php">Produk</a>
+                        <a class="nav-link" href="./admin-produk.php">Produk</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="./admin-categories.php">Kategori</a>
+                        <a class="nav-link" href="./admin-kategori.php">Kategori</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="./admin-status.php">Status</a>

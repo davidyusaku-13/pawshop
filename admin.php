@@ -30,13 +30,13 @@ if ($_SESSION['privilege'] != 'admin') {
       <div class="collapse navbar-collapse" id="mynavbar">
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <a class="nav-link" href="./admin-transactions.php">Transaksi</a>
+            <a class="nav-link" href="./admin-transaksi.php">Transaksi</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="./admin-products.php">Produk</a>
+            <a class="nav-link" href="./admin-produk.php">Produk</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="./admin-categories.php">Kategori</a>
+            <a class="nav-link" href="./admin-kategori.php">Kategori</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="./admin-status.php">Status</a>
@@ -68,13 +68,43 @@ if ($_SESSION['privilege'] != 'admin') {
 
   <!-- Start Content -->
   <div class="container">
+    <div class="row">
+      <?php
+      $trCount = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM transaksi"));
+      $prodCount = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM produk"));
+      $catCount = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM kategori"));
+      $statCount = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM status"));
+      $userCount = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM users"));
 
+      $rowCount = array($trCount, $prodCount, $catCount, $statCount, $userCount);
+      $dashboard = array("Transaksi", "Produk", "Kategori", "Status", "Users")
+      ?>
+
+      <!-- Start Card -->
+      <?php
+      for ($i = 0; $i < count($rowCount); $i++) {
+      ?>
+        <div class="col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-sm-1 mt-3 d-flex justify-content-center">
+          <div class="card" style="width:300px">
+            <div class="card-body text-center">
+              <img src="./img/cart-shopping-svgrepo-com.png" class="card-img-top w-25" alt="">
+              <h5 class="card-title"><?= $rowCount[$i] ?></h5>
+              <a class="btn btn-secondary" href="./admin-<?= strtolower($dashboard[$i]) ?>.php" class="card-text"><?= $dashboard[$i] ?></a>
+            </div>
+          </div>
+        </div>
+      <?php
+      }
+      ?>
+      <!-- End Card -->
+
+    </div>
   </div>
   <!-- End Content -->
 
 
   <!-- Start Footer -->
-  <footer class="footer mt-auto py-3 bg-body-tertiary">
+  <footer class="footer mt-3 py-3 bg-body-tertiary">
     <div class="container">
       <span class="text-body-secondary">
         &copy; 2023 Pawshop, Inc. &middot; <a href="#">Privacy</a> &middot; <a href="#">Terms</a>

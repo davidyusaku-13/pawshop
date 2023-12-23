@@ -10,11 +10,12 @@ $record = "";
 $wrongpass = "";
 $key = md5(2023);
 if (isset($_POST['submit'])) {
-  if ($_POST['username'] != null && $_POST['password'] != null && $_POST['repassword'] != null) {
+  if ($_POST['username'] != null && $_POST['password'] != null && $_POST['repassword'] != null && $_POST['phone_number'] != null) {
     if ($_POST['password'] == $_POST['repassword']) {
       $username = $_POST['username'];
       $password = md5($_POST['password']);
       $repassword = md5($_POST['repassword']);
+      $phone_number = $_POST['phone_number'];
       $secretKey = md5($_POST['secretKey']);
 
       $fetch = "SELECT * FROM users WHERE username='$username'";
@@ -23,18 +24,18 @@ if (isset($_POST['submit'])) {
         $record = '<div class="alert alert-danger" role="alert">Username is already used!</div>';
       } else {
         if ($secretKey == $key) {
-          $insertUser = "INSERT INTO users (username, password, privilege) VALUES ('$username', '$password', 'admin')";
+          $insertUser = "INSERT INTO users (username, password, phone_number, remember_token, privilege) VALUES ('$username', '$password', '$phone_number', '', 'admin')";
         } else {
-          $insertUser = "INSERT INTO users (username, password, privilege) VALUES ('$username', '$password', 'user')";
+          $insertUser = "INSERT INTO users (username, password, phone_number, remember_token, privilege) VALUES ('$username', '$password', '$phone_number', '', 'user')";
         }
         if (mysqli_query($conn, $insertUser)) {
-          $record = '<div class="alert alert-success" role="alert">Your account has been created!</div>';
+          $record = '<div class="alert alert-success" role="alert">Akun berhasil dibuat!</div>';
         } else {
-          $record = '<div class="alert alert-danger" role="alert">Account creation failed!</div>';
+          $record = '<div class="alert alert-danger" role="alert">Akun gagal dibuat!</div>';
         }
       }
     } else {
-      $wrongpass = '<div class="alert alert-danger" role="alert">Your password does not match!</div>';
+      $wrongpass = '<div class="alert alert-danger" role="alert">Password tidak sama!</div>';
     }
   }
 }
@@ -58,8 +59,8 @@ if (isset($_POST['submit'])) {
       background-position: center;
       background-size: cover;
       background-repeat: no-repeat;
-      filter: blur(6px);
-      -webkit-filter: blur(6px);
+      filter: blur(4px);
+      -webkit-filter: blur(4px);
       width: 100%;
       height: 100%;
       position: absolute;
@@ -67,8 +68,8 @@ if (isset($_POST['submit'])) {
     }
 
     .form-signin {
-      background-color: rgba(255, 255, 255, 0.3);
-      padding: 20px;
+      background-color: rgba(255, 255, 255, 0.5) !important;
+      padding: 20px !important;
     }
   </style>
 </head>
@@ -78,29 +79,37 @@ if (isset($_POST['submit'])) {
   <main class="form-signin w-100 m-auto">
     <form action="" method="POST" autocomplete="off">
       <div class="text-center">
-        <a href="./index.php">
+        <a href="./index.php" tabindex="-1">
           <img class="img-fluid text-center mb-4" src="./logo.png" alt="logo.png">
         </a>
         <h1 class="h3 mb-3 fw-bold">Daftar</h1>
       </div>
 
-      <div class="mb-3">
+      <div class="mb-3 form-floating">
         <input type="text" class="form-control" id="username" placeholder="Username" name="username" required>
+        <label for="username">Username</label>
       </div>
-      <div class="mb-3">
+      <div class="mb-3 form-floating">
         <input type="password" class="form-control" id="password" placeholder="Password" name="password" required>
+        <label for="password">Password</label>
       </div>
-      <div class="mb-3">
-        <input type="password" class="form-control" id="password" placeholder="Retype Password" name="repassword" required>
+      <div class="mb-3 form-floating">
+        <input type="password" class="form-control" id="repassword" placeholder="Retype Password" name="repassword" required>
+        <label for="repassword">Retype Password</label>
       </div>
-      <div class="mb-3">
+      <div class="mb-3 form-floating">
+        <input type="tel" class="form-control" id="phone_number" placeholder="Phone Number" name="phone_number" required>
+        <label for="phone_number">Phone Number</label>
+      </div>
+      <div class="mb-3 form-floating">
         <input type="password" class="form-control" id="secretKey" placeholder="Secret Key (to become Admin)" name="secretKey">
+        <label for="secretKey">Secret Key</label>
       </div>
       <?= $wrongpass; ?>
       <?= $record; ?>
       <button class="btn btn-primary w-100 py-2" name="submit" type="submit">Daftar</button>
       <p class="mt-1 text-center">Sudah punya akun? <a href="./login.php">Masuk</a></p>
-      <p class="text-center mt-5 text-body-secondary">&copy; 2023 Pawshop, Inc</p>
+      <p class="text-center text-body-secondary">&copy; 2023 Pawshop, Inc</p>
     </form>
   </main>
   <footer>

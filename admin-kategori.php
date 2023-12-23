@@ -70,13 +70,13 @@ if (isset($_POST['submit'])) {
       <div class="collapse navbar-collapse" id="mynavbar">
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <a class="nav-link" href="./admin-transactions.php">Transaksi</a>
+            <a class="nav-link" href="./admin-transaksi.php">Transaksi</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="./admin-products.php">Produk</a>
+            <a class="nav-link" href="./admin-produk.php">Produk</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active" href="./admin-categories.php">Kategori</a>
+            <a class="nav-link active" href="./admin-kategori.php">Kategori</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="./admin-status.php">Status</a>
@@ -189,7 +189,7 @@ if (isset($_POST['submit'])) {
         </thead>
         <tbody>
           <?php
-          $fetch = "SELECT * FROM categories";
+          $fetch = "SELECT * FROM kategori";
           $res = mysqli_query($conn, $fetch);
 
           if (mysqli_num_rows($res) > 0) {
@@ -244,7 +244,7 @@ if (isset($_POST['submit'])) {
 
       // Fetch data using AJAX
       $.ajax({
-        url: 'admin-categories-fetch.php',
+        url: 'admin-kategori-fetch.php',
         type: 'GET',
         data: {
           id: categoryId
@@ -275,7 +275,7 @@ if (isset($_POST['submit'])) {
 
       // Fetch data using AJAX
       $.ajax({
-        url: 'admin-categories-fetch.php',
+        url: 'admin-kategori-fetch.php',
         type: 'GET',
         data: {
           id: categoryId

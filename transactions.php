@@ -72,7 +72,7 @@ $total = 0;
                 <hr class="dropdown-divider">
               </li>
               <?php
-              $sql = "SELECT * FROM categories";
+              $sql = "SELECT * FROM kategori";
               $result = mysqli_query($conn, $sql);
 
               if (mysqli_num_rows($result) > 0) {
@@ -117,7 +117,7 @@ $total = 0;
           <tbody>
             <?php
             $userid = $_SESSION['userid'];
-            $sql = "SELECT tr.id, tr.timestamp, tr.total_amount, tr.payment_method, st.name FROM transactions tr JOIN status st ON tr.status_id=st.id WHERE user_id='$userid'";
+            $sql = "SELECT tr.id, tr.timestamp, tr.total_amount, tr.payment_method, st.name FROM transaksi tr JOIN status st ON tr.status_id=st.id WHERE user_id='$userid'";
 
             $result = mysqli_query($conn, $sql);
 
@@ -157,7 +157,7 @@ $total = 0;
   <!-- Start Cart -->
   <div class="offcanvas offcanvas-end" tabindex="-1" id="cart" aria-labelledby="cartLabel">
     <div class="offcanvas-header">
-      <h5 class="offcanvas-title" id="cartLabel">Your Shopping Cart</h5>
+      <h5 class="offcanvas-title" id="cartLabel">Keranjang</h5>
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
@@ -181,12 +181,12 @@ $total = 0;
                 <tr>
                   <td class="text-center"><a href="removeFromCart.php?product_id=<?= $item['id'] ?>"><i class="fa-solid fa-trash"></i></a></td>
                   <td><?= $item['name'] ?></td>
-                  <td>
+                  <td style="width: 10em;">
                     <form class="d-flex justify-content-between" action="updateCart.php" method="POST">
                       <input type="hidden" name="product_id" value="<?= $item['id'] ?>">
                       <?php
                       $id = $item['id'];
-                      $sql = "SELECT * FROM product WHERE id='$id'";
+                      $sql = "SELECT * FROM produk WHERE id='$id'";
                       $res = mysqli_query($conn, $sql);
                       if (mysqli_num_rows($res) > 0) {
                         while ($row = mysqli_fetch_assoc($res)) {
@@ -204,7 +204,7 @@ $total = 0;
             <?php
               }
             } else {
-              echo "<p>Your cart is empty.</p>";
+              echo '<tr><td class="text-center" colspan="4">Keranjang anda kosong!</td></tr>';
             }
             ?>
           </tbody>
@@ -222,7 +222,9 @@ $total = 0;
             <option value="Transfer">Transfer</option>
             <option value="Tunai">Tunai</option>
           </select>
-          <button name="checkout" class="mt-3 btn btn-success">Checkout</button>
+          <div class="d-flex justify-content-end">
+            <button name="checkout" class="mt-3 btn btn-success">Checkout</button>
+          </div>
         </form>
       </div>
     </div>

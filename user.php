@@ -81,7 +81,7 @@ if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] ==
                 <hr class="dropdown-divider">
               </li>
               <?php
-              $sql = "SELECT * FROM categories";
+              $sql = "SELECT * FROM kategori";
               $result = mysqli_query($conn, $sql);
 
               if (mysqli_num_rows($result) > 0) {
@@ -119,7 +119,6 @@ if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] ==
   <div id="carouselPawshop" class="carousel slide" data-bs-touch="true">
     <div class="carousel-inner">
       <div class="carousel-item active">
-        <!-- col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-sm-1 -->
         <img src="./img/carousel1.jpg" class="d-block img-fluid" alt="./img/carousel1.jpg">
         <div class="carousel-caption d-md-block">
           <h3>Selamat datang di Pawshop</h3>
@@ -156,42 +155,51 @@ if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] ==
   <div class="container">
     <div class="row">
       <?php
-      $sql = "SELECT * FROM product";
+      $sql = "SELECT * FROM produk";
+
+      $prev = '';
+      $next = '';
+
       $page = 1;
       if (isset($_GET['page']) && $_GET['page'] != null) {
         $page = $_GET['page'];
       }
+
       $item_per_page = 4;
       $total_item = mysqli_num_rows(mysqli_query($conn, $sql));
-      $total_page = $total_item / $item_per_page;
+      $total_page = ceil($total_item / $item_per_page);
       $offset = ($page - 1) * $item_per_page;
-      $sql = "SELECT * FROM product LIMIT $item_per_page OFFSET $offset";
+      $sql = "SELECT * FROM produk LIMIT $item_per_page OFFSET $offset";
+
+      $prev = $page == 1 ? 'disabled' : '';
+      $next = $page == $total_page ? 'disabled' : '';
+
       if (isset($_GET['s'])) {
         $search = $_GET['s'];
-        $sql = "SELECT * FROM product WHERE nama_produk LIKE '%$search%'";
+        $sql = "SELECT * FROM produk WHERE nama_produk LIKE '%$search%'";
         $page = 1;
         if (isset($_GET['page']) && $_GET['page'] != null) {
           $page = $_GET['page'];
         }
         $item_per_page = 4;
         $total_item = mysqli_num_rows(mysqli_query($conn, $sql));
-        $total_page = $total_item / $item_per_page;
+        $total_page = ceil($total_item / $item_per_page);
         $offset = ($page - 1) * $item_per_page;
-        $sql = "SELECT * FROM product WHERE nama_produk LIKE '%$search%' LIMIT $item_per_page OFFSET $offset";
+        $sql = "SELECT * FROM produk WHERE nama_produk LIKE '%$search%' LIMIT $item_per_page OFFSET $offset";
       }
 
       if (isset($_GET['k'])) {
         $kategori = $_GET['k'];
-        $sql = "SELECT * FROM product WHERE category_id LIKE '%$kategori%'";
+        $sql = "SELECT * FROM produk WHERE category_id LIKE '%$kategori%'";
         $page = 1;
         if (isset($_GET['page']) && $_GET['page'] != null) {
           $page = $_GET['page'];
         }
         $item_per_page = 4;
         $total_item = mysqli_num_rows(mysqli_query($conn, $sql));
-        $total_page = $total_item / $item_per_page;
+        $total_page = ceil($total_item / $item_per_page);
         $offset = ($page - 1) * $item_per_page;
-        $sql = "SELECT * FROM product WHERE category_id LIKE '%$kategori%' LIMIT $item_per_page OFFSET $offset";
+        $sql = "SELECT * FROM produk WHERE category_id LIKE '%$kategori%' LIMIT $item_per_page OFFSET $offset";
       }
 
       $result = mysqli_query($conn, $sql);
@@ -242,7 +250,7 @@ if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] ==
     <nav aria-label="Page navigation example">
       <ul class="pagination">
         <li class="page-item">
-          <a class="page-link" href="#" aria-label="Previous">
+          <a class="page-link <?= $prev ?>" href="?page=<?= $page - 1 ?>" aria-label="Previous">
             <span aria-hidden="true">&laquo;</span>
           </a>
         </li>
@@ -259,7 +267,7 @@ if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] ==
         }
         ?>
         <li class="page-item">
-          <a class="page-link" href="#" aria-label="Next">
+          <a class="page-link <?= $next ?>" href="?page=<?= $page + 1 ?>" aria-label="Next">
             <span aria-hidden="true">&raquo;</span>
           </a>
         </li>
@@ -271,7 +279,7 @@ if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] ==
   <!-- Start Cart -->
   <div class="offcanvas offcanvas-end" tabindex="-1" id="cart" aria-labelledby="cartLabel">
     <div class="offcanvas-header">
-      <h5 class="offcanvas-title" id="cartLabel">Your Shopping Cart</h5>
+      <h5 class="offcanvas-title" id="cartLabel">Keranjang</h5>
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
@@ -300,7 +308,7 @@ if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] ==
                       <input type="hidden" name="product_id" value="<?= $item['id'] ?>">
                       <?php
                       $id = $item['id'];
-                      $sql = "SELECT * FROM product WHERE id='$id'";
+                      $sql = "SELECT * FROM produk WHERE id='$id'";
                       $res = mysqli_query($conn, $sql);
                       if (mysqli_num_rows($res) > 0) {
                         while ($row = mysqli_fetch_assoc($res)) {
@@ -318,7 +326,7 @@ if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] ==
             <?php
               }
             } else {
-              echo '<tr><td class="text-center" colspan="4">Your cart is empty!</td></tr>';
+              echo '<tr><td class="text-center" colspan="4">Keranjang anda kosong!</td></tr>';
             }
             ?>
           </tbody>
@@ -336,7 +344,9 @@ if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] ==
             <option value="Transfer">Transfer</option>
             <option value="Tunai">Tunai</option>
           </select>
-          <button name="checkout" class="mt-3 btn btn-success">Checkout</button>
+          <div class="d-flex justify-content-end">
+            <button name="checkout" class="mt-3 btn btn-success">Checkout</button>
+          </div>
         </form>
       </div>
     </div>

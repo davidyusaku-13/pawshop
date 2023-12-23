@@ -61,13 +61,13 @@ if (isset($_POST['submit'])) {
       <div class="collapse navbar-collapse" id="mynavbar">
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <a class="nav-link active" href="./admin-transactions.php">Transaksi</a>
+            <a class="nav-link active" href="./admin-transaksi.php">Transaksi</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="./admin-products.php">Produk</a>
+            <a class="nav-link" href="./admin-produk.php">Produk</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="./admin-categories.php">Kategori</a>
+            <a class="nav-link" href="./admin-kategori.php">Kategori</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="./admin-status.php">Status</a>
@@ -175,7 +175,7 @@ if (isset($_POST['submit'])) {
         </thead>
         <tbody>
           <?php
-          $fetch = "SELECT tr.id, tr.timestamp, u.username, tr.total_amount, tr.payment_method, st.name FROM transactions tr JOIN users u ON tr.user_id=u.id JOIN status st ON tr.status_id=st.id ORDER BY tr.id DESC";
+          $fetch = "SELECT tr.id, tr.timestamp, u.username, tr.total_amount, tr.payment_method, st.name FROM transaksi tr JOIN users u ON tr.user_id=u.id JOIN status st ON tr.status_id=st.id ORDER BY tr.id DESC";
           $res = mysqli_query($conn, $fetch);
 
           if (mysqli_num_rows($res) > 0) {
@@ -241,7 +241,7 @@ if (isset($_POST['submit'])) {
 
       // Fetch data using AJAX
       $.ajax({
-        url: 'admin-transactions-fetch.php',
+        url: 'admin-transaksi-fetch.php',
         type: 'GET',
         data: {
           id: transactionId
@@ -272,7 +272,7 @@ if (isset($_POST['submit'])) {
 
       // Fetch data using AJAX
       $.ajax({
-        url: 'admin-transactions-fetch.php',
+        url: 'admin-transaksi-fetch.php',
         type: 'GET',
         data: {
           id: transactionId
