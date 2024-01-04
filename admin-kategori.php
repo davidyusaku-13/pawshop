@@ -11,32 +11,32 @@ $status = '';
 if (isset($_POST['submit'])) {
   if (isset($_POST['category_name']) && $_POST['category_name'] != null) {
     $category_name = $_POST['category_name'];
-    $sql = "INSERT INTO categories (name) VALUES ('$category_name')";
+    $sql = "INSERT INTO kategori (name) VALUES ('$category_name')";
     if (mysqli_query($conn, $sql)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">New category has been added!</div>';
+      $status = '<div class="mt-3 alert alert-success" role="alert">Kategori berhasil ditambahkan!</div>';
     } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to add category!</div>';
+      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menambah kategori!</div>';
     }
   }
   if (isset($_POST['edit_category_name']) && $_POST['edit_category_name'] != null) {
     $id = $_POST['id'];
     $edit_category_name = $_POST['edit_category_name'];
-    $sql = "UPDATE categories SET name='$edit_category_name' WHERE id=$id";
+    $sql = "UPDATE kategori SET name='$edit_category_name' WHERE id=$id";
     $status = "";
     if (mysqli_query($conn, $sql)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">Edit success!</div>';
+      $status = '<div class="mt-3 alert alert-success" role="alert">Edit berhasil!</div>';
     } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to edit category!</div>';
+      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengedit kategori!</div>';
     }
   }
   if (isset($_POST['delete_category_name']) && $_POST['delete_category_name'] != null) {
     $id = $_POST['id'];
-    $sql = "DELETE FROM categories WHERE id=$id";
+    $sql = "DELETE FROM kategori WHERE id=$id";
     $status = "";
     if (mysqli_query($conn, $sql)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">Category has been deleted!</div>';
+      $status = '<div class="mt-3 alert alert-success" role="alert">Kategori berhasil dihapus!</div>';
     } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to delete category!</div>';
+      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menghapus kategori!</div>';
     }
   }
 }
@@ -121,7 +121,10 @@ if (isset($_POST['submit'])) {
           </div>
           <div class="modal-body">
             <form action="" method="POST">
-              <input class="form-control" type="text" name="category_name" placeholder="Nama Kategori">
+              <div class="form-floating">
+                <input class="form-control" type="text" name="category_name" placeholder="Nama Kategori">
+                <label for="category_name">Nama Kategori</label>
+              </div>
               <div class="d-flex justify-content-end">
                 <input type="submit" name="submit" class="mt-2 btn btn-primary"></input>
               </div>
@@ -144,7 +147,10 @@ if (isset($_POST['submit'])) {
           <div class="modal-body">
             <form action="" method="POST">
               <input type="hidden" name="id" value="">
-              <input class="form-control" type="text" name="edit_category_name" value="">
+              <div class="form-floating">
+                <input class="form-control" type="text" name="edit_category_name" value="">
+                <label for="edit_category_name">Nama Kategori</label>
+              </div>
               <div class="d-flex justify-content-end">
                 <input type="submit" name="submit" class="mt-2 btn btn-primary"></input>
               </div>

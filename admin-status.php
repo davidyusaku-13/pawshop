@@ -13,9 +13,9 @@ if (isset($_POST['submit'])) {
     $status_name = $_POST['status_name'];
     $sql = "INSERT INTO status (name) VALUES ('$status_name')";
     if (mysqli_query($conn, $sql)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">New status has been added!</div>';
+      $status = '<div class="mt-3 alert alert-success" role="alert">Status berhasil ditambahkan!</div>';
     } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to add status!</div>';
+      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menambahkan status!</div>';
     }
   }
   if (isset($_POST['edit_status_name']) && $_POST['edit_status_name'] != null) {
@@ -24,9 +24,9 @@ if (isset($_POST['submit'])) {
     $sql = "UPDATE status SET name='$edit_status_name' WHERE id=$id";
     $status = "";
     if (mysqli_query($conn, $sql)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">Edit success!</div>';
+      $status = '<div class="mt-3 alert alert-success" role="alert">Edit berhasil!</div>';
     } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to edit status!</div>';
+      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengedit!</div>';
     }
   }
   if (isset($_POST['delete_status_name']) && $_POST['delete_status_name'] != null) {
@@ -34,9 +34,9 @@ if (isset($_POST['submit'])) {
     $sql = "DELETE FROM status WHERE id=$id";
     $status = "";
     if (mysqli_query($conn, $sql)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">Status has been deleted!</div>';
+      $status = '<div class="mt-3 alert alert-success" role="alert">Status berhasil dihapus!</div>';
     } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to delete status!</div>';
+      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menghapus status!</div>';
     }
   }
 }
@@ -70,13 +70,13 @@ if (isset($_POST['submit'])) {
       <div class="collapse navbar-collapse" id="mynavbar">
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <a class="nav-link" href="./admin-transactions.php">Transaksi</a>
+            <a class="nav-link" href="./admin-transaksi.php">Transaksi</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="./admin-products.php">Produk</a>
+            <a class="nav-link" href="./admin-produk.php">Produk</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="./admin-categories.php">Kategori</a>
+            <a class="nav-link" href="./admin-kategori.php">Kategori</a>
           </li>
           <li class="nav-item">
             <a class="nav-link active" href="./admin-status.php">Status</a>
@@ -121,7 +121,10 @@ if (isset($_POST['submit'])) {
           </div>
           <div class="modal-body">
             <form action="" method="POST">
-              <input class="form-control" type="text" name="status_name" placeholder="Nama Status">
+              <div class="form-floating">
+                <input class="form-control" type="text" name="status_name" placeholder="Nama Status">
+                <label for="status_name">Nama Status</label>
+              </div>
               <div class="d-flex justify-content-end">
                 <input type="submit" name="submit" class="mt-2 btn btn-primary"></input>
               </div>
@@ -144,7 +147,10 @@ if (isset($_POST['submit'])) {
           <div class="modal-body">
             <form action="" method="POST">
               <input type="hidden" name="id" value="">
-              <input class="form-control" type="text" name="edit_status_name" value="">
+              <div class="form-floating">
+                <input class="form-control" type="text" name="edit_status_name" value="">
+                <label for="edit_status_name">Nama Status</label>
+              </div>
               <div class="d-flex justify-content-end">
                 <input type="submit" name="submit" class="mt-2 btn btn-primary"></input>
               </div>

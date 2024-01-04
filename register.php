@@ -86,24 +86,24 @@ if (isset($_POST['submit'])) {
       </div>
 
       <div class="mb-3 form-floating">
-        <input type="text" class="form-control" id="username" placeholder="Username" name="username" required>
+        <input type="text" class="form-control" id="username" placeholder="" name="username" required>
         <label for="username">Username</label>
       </div>
       <div class="mb-3 form-floating">
-        <input type="password" class="form-control" id="password" placeholder="Password" name="password" required>
+        <input type="password" class="form-control" id="password" placeholder="" name="password" required>
         <label for="password">Password</label>
       </div>
       <div class="mb-3 form-floating">
-        <input type="password" class="form-control" id="repassword" placeholder="Retype Password" name="repassword" required>
+        <input type="password" class="form-control" id="repassword" placeholder="" name="repassword" required>
         <label for="repassword">Retype Password</label>
       </div>
       <div class="mb-3 form-floating">
-        <input type="tel" class="form-control" id="phone_number" placeholder="Phone Number" name="phone_number" required>
+        <input type="tel" class="form-control" id="phone_number" placeholder="" name="phone_number" required>
         <label for="phone_number">Phone Number</label>
       </div>
       <div class="mb-3 form-floating">
-        <input type="password" class="form-control" id="secretKey" placeholder="Secret Key (to become Admin)" name="secretKey">
-        <label for="secretKey">Secret Key</label>
+        <input type="password" class="form-control" id="secretKey" placeholder="" name="secretKey">
+        <label for="secretKey">Secret Key (to become Admin)</label>
       </div>
       <?= $wrongpass; ?>
       <?= $record; ?>

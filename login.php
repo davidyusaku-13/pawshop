@@ -73,11 +73,11 @@ if (isset($_POST['submit'])) {
       </div>
 
       <div class="mb-3 form-floating">
-        <input type="text" class="form-control" id="username" placeholder="Username" name="username" required>
+        <input type="text" class="form-control" id="username" placeholder="" name="username" required>
         <label for="username">Username</label>
       </div>
       <div class="mb-3 form-floating">
-        <input type="password" class="form-control" id="password" placeholder="Password" name="password" required>
+        <input type="password" class="form-control" id="password" placeholder="" name="password" required>
         <label for="username">Password</label>
       </div>
 

@@ -12,19 +12,20 @@ $kategori_status = '';
 
 if (isset($_POST['submit'])) {
     // ADD DATA
-    if (isset($_FILES) && isset($_POST['product_name']) && isset($_POST['stok']) && isset($_POST['harga'])) {
+    if (isset($_FILES) && isset($_POST['product_name']) && isset($_POST['stok']) && isset($_POST['harga']) && isset($_POST['detail'])) {
         // AMBIL DATA DARI FORM
         $gambar = basename($_FILES["gambar"]["name"]);
         $product_name = $_POST['product_name'];
         $category_id = $_POST['category_id'];
         $stok = $_POST['stok'];
         $harga = $_POST['harga'];
+        $detail = $_POST['detail'];
 
         // UPDATE DATABASE
         if ($gambar == "") {
-            $sql = "INSERT INTO product (gambar, nama_produk, category_id, stok, harga) VALUES ('x.jpg', '$product_name', $category_id, $stok, $harga)";
+            $sql = "INSERT INTO produk (gambar, nama_produk, category_id, stok, harga, detail) VALUES ('x.jpg', '$product_name', $category_id, $stok, $harga, '$detail')";
         } else {
-            $sql = "INSERT INTO product (gambar, nama_produk, category_id, stok, harga) VALUES ('$gambar', '$product_name', $category_id, $stok, $harga)";
+            $sql = "INSERT INTO produk (gambar, nama_produk, category_id, stok, harga, detail) VALUES ('$gambar', '$product_name', $category_id, $stok, $harga, '$detail')";
 
             // AMBIL DATA GAMBAR
             $target_dir = "./img/";
@@ -34,11 +35,11 @@ if (isset($_POST['submit'])) {
 
             $check = getimagesize($_FILES["gambar"]["tmp_name"]);
             if ($check !== false) {
-                $file = '<div class="mt-3 alert alert-success" role="alert">File is an image!</div>';
+                $file = '<div class="mt-3 alert alert-success" role="alert">File adalah gambar!</div>';
                 $uploadOk = 1;
             } else {
                 // echo "File is not an image.";
-                $file = '<div class="mt-3 alert alert-danger" role="alert">File is not an image!</div>';
+                $file = '<div class="mt-3 alert alert-danger" role="alert">File bukan gambar!</div>';
                 $uploadOk = 0;
             }
             if ($uploadOk == 0) {
@@ -46,22 +47,22 @@ if (isset($_POST['submit'])) {
             } else {
                 if (move_uploaded_file($_FILES["gambar"]["tmp_name"], $target_file)) {
                     // FINAL UPLOAD FILE SETELAH CHECK MACEM2
-                    $file = '<div class="mt-3 alert alert-success" role="alert">File upload success!</div>';
+                    $file = '<div class="mt-3 alert alert-success" role="alert">File upload berhasil!</div>';
                 } else {
-                    $file = '<div class="mt-3 alert alert-danger" role="alert">Failed to upload file!</div>';
+                    $file = '<div class="mt-3 alert alert-danger" role="alert">File upload gagal!</div>';
                 }
             }
         }
 
         if (mysqli_query($conn, $sql)) {
-            $status = '<div class="mt-3 alert alert-success" role="alert">Product has been added!</div>';
+            $status = '<div class="mt-3 alert alert-success" role="alert">Produk berhasil ditambahkan!</div>';
         } else {
-            $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to add product!</div>';
+            $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menambahkan produk!</div>';
         }
     }
 
     // EDIT DATA
-    if (isset($_POST['id']) && isset($_POST['edit_product_name']) && isset($_POST['edit_category_id']) && isset($_POST['edit_stok']) && isset($_POST['edit_harga'])) {
+    if (isset($_POST['id']) && isset($_POST['edit_product_name']) && isset($_POST['edit_category_id']) && isset($_POST['edit_stok']) && isset($_POST['edit_harga']) && isset($_POST['edit_detail'])) {
         // AMBIL DATA DARI FORM
         $id = $_POST['id'];
         $edit_gambar = basename($_FILES["edit_gambar"]["name"]);
@@ -69,12 +70,13 @@ if (isset($_POST['submit'])) {
         $edit_category_id = $_POST['edit_category_id'];
         $edit_stok = $_POST['edit_stok'];
         $edit_harga = $_POST['edit_harga'];
+        $edit_detail = $_POST['edit_detail'];
 
         // UPDATE DATABASE
         if ($edit_gambar == "") {
-            $sql = "UPDATE product SET nama_produk='$edit_product_name', category_id='$edit_category_id', stok='$edit_stok', harga='$edit_harga' WHERE id=$id";
+            $sql = "UPDATE produk SET nama_produk='$edit_product_name', category_id='$edit_category_id', stok='$edit_stok', harga='$edit_harga', detail='$edit_detail' WHERE id=$id";
         } else {
-            $sql = "UPDATE product SET gambar='$edit_gambar', nama_produk='$edit_product_name', category_id='$edit_category_id', stok='$edit_stok', harga='$edit_harga' WHERE id=$id";
+            $sql = "UPDATE produk SET gambar='$edit_gambar', nama_produk='$edit_product_name', category_id='$edit_category_id', stok='$edit_stok', harga='$edit_harga', detail='$edit_detail' WHERE id=$id";
 
             // AMBIL DATA GAMBAR
             $target_dir = "./img/";
@@ -84,11 +86,11 @@ if (isset($_POST['submit'])) {
 
             $check = getimagesize($_FILES["edit_gambar"]["tmp_name"]);
             if ($check !== false) {
-                $file = '<div class="mt-3 alert alert-success" role="alert">File is an image!</div>';
+                $file = '<div class="mt-3 alert alert-success" role="alert">File adalah gambar!</div>';
                 $uploadOk = 1;
             } else {
                 // echo "File is not an image.";
-                $file = '<div class="mt-3 alert alert-danger" role="alert">File is not an image!</div>';
+                $file = '<div class="mt-3 alert alert-danger" role="alert">File bukan gambar!</div>';
                 $uploadOk = 0;
             }
             if ($uploadOk == 0) {
@@ -96,29 +98,29 @@ if (isset($_POST['submit'])) {
             } else {
                 if (move_uploaded_file($_FILES["edit_gambar"]["tmp_name"], $target_file)) {
                     // FINAL UPLOAD FILE SETELAH CHECK MACEM2
-                    $file = '<div class="mt-3 alert alert-success" role="alert">File upload success!</div>';
+                    $file = '<div class="mt-3 alert alert-success" role="alert">File upload berhasil!</div>';
                 } else {
-                    $file = '<div class="mt-3 alert alert-danger" role="alert">Failed to upload file!</div>';
+                    $file = '<div class="mt-3 alert alert-danger" role="alert">File upload gagal!</div>';
                 }
             }
         }
 
         if (mysqli_query($conn, $sql)) {
-            $status = '<div class="mt-3 alert alert-success" role="alert">Product has been updated!</div>';
+            $status = '<div class="mt-3 alert alert-success" role="alert">Produk berhasil diubah!</div>';
         } else {
-            $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to update product!</div>';
+            $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengubah produk!</div>';
         }
     }
 
     // DELETE DATA
     if (isset($_POST['delete_product_name']) && $_POST['delete_product_name'] != null) {
         $id = $_POST['id'];
-        $sql = "DELETE FROM product WHERE id=$id";
+        $sql = "DELETE FROM produk WHERE id=$id";
         $status = "";
         if (mysqli_query($conn, $sql)) {
-            $status = '<div class="mt-3 alert alert-success" role="alert">Product has been deleted!</div>';
+            $status = '<div class="mt-3 alert alert-success" role="alert">Produk berhasil dihapus!</div>';
         } else {
-            $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to delete product!</div>';
+            $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menghapus produk!</div>';
         }
     }
 }
@@ -194,6 +196,7 @@ if (isset($_POST['submit'])) {
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newProduct">Tambah</button>
         <?= $file; ?>
         <?= $status; ?>
+
         <!-- Start MODAL TAMBAH PRODUK -->
         <div class="modal" id="newProduct">
             <div class="modal-dialog modal-dialog-centered">
@@ -205,23 +208,39 @@ if (isset($_POST['submit'])) {
                     <div class="modal-body">
                         <form action="" method="POST" enctype="multipart/form-data" autocomplete="off">
                             <input class="form-control" type="file" name="gambar">
-                            <input class="mt-2 form-control" type="text" name="product_name" placeholder="Nama Produk" required>
-                            <select class="mt-2 form-select" name="category_id" required>
-                                <option value="" disabled selected>Pilih kategori</option>
-                                <?php
-                                $sql = 'SELECT * FROM kategori';
-                                $res = mysqli_query($conn, $sql);
-                                if (mysqli_num_rows($res) > 0) {
-                                    while ($row = mysqli_fetch_assoc($res)) {
-                                ?>
-                                        <option value="<?= $row['id'] ?>"><?= $row['name'] ?></option>
-                                <?php
+                            <div class="form-floating">
+                                <input class="mt-2 form-control" type="text" name="product_name" placeholder="Nama Produk" required>
+                                <label for="product_name">Nama Produk</label>
+                            </div>
+                            <div class="form-floating">
+                                <select class="mt-2 form-select" name="category_id" required>
+                                    <option value="" disabled selected>Pilih kategori</option>
+                                    <?php
+                                    $sql = 'SELECT * FROM kategori';
+                                    $res = mysqli_query($conn, $sql);
+                                    if (mysqli_num_rows($res) > 0) {
+                                        while ($row = mysqli_fetch_assoc($res)) {
+                                    ?>
+                                            <option value="<?= $row['id'] ?>"><?= $row['name'] ?></option>
+                                    <?php
+                                        }
                                     }
-                                }
-                                ?>
-                            </select>
-                            <input class="mt-2 form-control" type="number" min="0" name="stok" placeholder="Stok" required>
-                            <input class="mt-2 form-control" type="number" min="0" name="harga" placeholder="Harga" required>
+                                    ?>
+                                </select>
+                                <label for="category_id">Kategori</label>
+                            </div>
+                            <div class="form-floating">
+                                <input class="mt-2 form-control" type="number" min="0" name="stok" placeholder="Stok" required>
+                                <label for="stok">Stok</label>
+                            </div>
+                            <div class="form-floating">
+                                <input class="mt-2 form-control" type="number" min="0" name="harga" placeholder="Harga" required>
+                                <label for="harga">Harga</label>
+                            </div>
+                            <div class="form-floating">
+                                <textarea class="mt-2 form-control" rows="3" name="detail" placeholder="Detail Produk"></textarea>
+                                <label for="detail" class="form-label">Detail Produk</label>
+                            </div>
                             <div class="d-flex justify-content-end">
                                 <input type="submit" name="submit" class="mt-2 btn btn-primary"></input>
                             </div>
@@ -245,23 +264,39 @@ if (isset($_POST['submit'])) {
                         <form action="" method="POST" enctype="multipart/form-data" autocomplete="off">
                             <input class="form-control" type="file" name="edit_gambar">
                             <input type="hidden" name="id">
-                            <input class="mt-2 form-control" type="text" name="edit_product_name" placeholder="Nama Produk" required>
-                            <select class="mt-2 form-select" name="edit_category_id" required>
-                                <option value="" disabled selected>Pilih kategori</option>
-                                <?php
-                                $sql = 'SELECT * FROM kategori';
-                                $res = mysqli_query($conn, $sql);
-                                if (mysqli_num_rows($res) > 0) {
-                                    while ($row = mysqli_fetch_assoc($res)) {
-                                ?>
-                                        <option value="<?= $row['id'] ?>"><?= $row['name'] ?></option>
-                                <?php
+                            <div class="form-floating">
+                                <input class="mt-2 form-control" type="text" name="edit_product_name" placeholder="Nama Produk" required>
+                                <label for="edit_product_name">Nama Produk</label>
+                            </div>
+                            <div class="form-floating">
+                                <select class="mt-2 form-select" name="edit_category_id" required>
+                                    <option value="" disabled selected>Pilih kategori</option>
+                                    <?php
+                                    $sql = 'SELECT * FROM kategori';
+                                    $res = mysqli_query($conn, $sql);
+                                    if (mysqli_num_rows($res) > 0) {
+                                        while ($row = mysqli_fetch_assoc($res)) {
+                                    ?>
+                                            <option value="<?= $row['id'] ?>"><?= $row['name'] ?></option>
+                                    <?php
+                                        }
                                     }
-                                }
-                                ?>
-                            </select>
-                            <input class="mt-2 form-control" type="number" min="0" name="edit_stok" placeholder="Stok" required>
-                            <input class="mt-2 form-control" type="number" min="0" name="edit_harga" placeholder="Harga" required>
+                                    ?>
+                                </select>
+                                <label for="edit_category_id">Kategori</label>
+                            </div>
+                            <div class="form-floating">
+                                <input class="mt-2 form-control" type="number" min="0" name="edit_stok" placeholder="Stok" required>
+                                <label for="edit_stok">Stok</label>
+                            </div>
+                            <div class="form-floating">
+                                <input class="mt-2 form-control" type="number" min="0" name="edit_harga" placeholder="Harga" required>
+                                <label for="edit_harga">Harga</label>
+                            </div>
+                            <div class="form-floating">
+                                <textarea class="mt-2 form-control" rows="3" name="edit_detail" placeholder="Detail Produk"></textarea>
+                                <label for="edit_detail" class="form-label">Detail Produk</label>
+                            </div>
                             <div class="d-flex justify-content-end">
                                 <input type="submit" name="submit" class="mt-2 btn btn-primary"></input>
                             </div>
@@ -305,11 +340,12 @@ if (isset($_POST['submit'])) {
                         <th>Kategori</th>
                         <th>Stok</th>
                         <th>Harga</th>
+                        <th>Detail</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php
-                    $fetch = "SELECT p.id, p.gambar, p.nama_produk, c.name, p.stok, p.harga FROM produk p JOIN kategori c ON p.category_id=c.id";
+                    $fetch = "SELECT p.id, p.gambar, p.nama_produk, c.name, p.stok, p.harga, p.detail FROM produk p JOIN kategori c ON p.category_id=c.id";
                     $res = mysqli_query($conn, $fetch);
 
                     if (mysqli_num_rows($res) > 0) {
@@ -325,6 +361,7 @@ if (isset($_POST['submit'])) {
                                 <td><?= $row['name']; ?></td>
                                 <td><?= $row['stok']; ?></td>
                                 <td>Rp <?= number_format($row['harga']); ?></td>
+                                <td><?= $row['detail']; ?></td>
                             </tr>
                     <?php
                         }
@@ -340,6 +377,7 @@ if (isset($_POST['submit'])) {
                         <th>Kategori</th>
                         <th>Stok</th>
                         <th>Harga</th>
+                        <th>Detail</th>
                     </tr>
                 </tfoot>
             </table>
@@ -386,6 +424,7 @@ if (isset($_POST['submit'])) {
                         $('#editProduct select[name="edit_category_id"]').val(data.category_id);
                         $('#editProduct input[name="edit_stok"]').val(data.stok);
                         $('#editProduct input[name="edit_harga"]').val(data.harga);
+                        $('#editProduct textarea[name="edit_detail"]').val(data.detail);
                         // You can update other modal fields as needed
                     } else {
                         // Handle errors

@@ -1,6 +1,14 @@
 <?php
+include 'config.php';
+session_start();
+
+$search = '';
+$kategori = '';
+$total = 0;
+
 $search = isset($_GET['s']) ? $_GET['s'] : '';
 $kategori = isset($_GET['k']) ? $_GET['k'] : '';
+$detailID = isset($_GET['id']) ? $_GET['id'] : '';
 if ($kategori == '') {
   $kategori_status = 'active';
 }
@@ -24,7 +32,6 @@ if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] ==
 </head>
 
 <body>
-
   <!-- Start Navbar -->
   <nav class="navbar navbar-expand-sm navbar-light bg-light sticky-top">
     <div class="container-fluid d-flex">
@@ -115,168 +122,47 @@ if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] ==
 
   <!-- Start Content -->
 
-  <!-- Start Carousel -->
-  <div id="carouselPawshop" class="carousel slide" data-bs-touch="true">
-    <div class="carousel-inner">
-      <div class="carousel-item active">
-        <img src="./img/carousel1.jpg" class="d-block img-fluid" alt="./img/carousel1.jpg">
-        <div class="carousel-caption d-md-block">
-          <h3>Selamat datang di Pawshop</h3>
-          <p>Menjual beragam kebutuhan kucing</p>
-        </div>
-      </div>
-      <div class="carousel-item">
-        <img src="./img/carousel2.jpg" class="d-block img-fluid" alt="./img/carousel2.jpg">
-        <div class="carousel-caption d-md-block">
-          <h3>Selamat datang di Pawshop</h3>
-          <p>Mulai dari makanan, vitamin, mainan kucing</p>
-        </div>
-      </div>
-      <div class="carousel-item">
-        <img src="./img/carousel5.jpg" class="d-block img-fluid" alt="./img/carousel5.jpg">
-        <div class="carousel-caption d-md-block">
-          <h3>Selamat datang di Pawshop</h3>
-          <p>Hingga perlengkapan kebersihan kucing</p>
-        </div>
-      </div>
-    </div>
-    <button class="carousel-control-prev" type="button" data-bs-target="#carouselPawshop" data-bs-slide="prev">
-      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-      <span class="visually-hidden">Previous</span>
-    </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#carouselPawshop" data-bs-slide="next">
-      <span class="carousel-control-next-icon" aria-hidden="true"></span>
-      <span class="visually-hidden">Next</span>
-    </button>
-  </div>
-  <!-- End Carousel -->
-
   <!-- Start Card -->
-  <div class="container">
-    <div class="row">
-      <?php
-      $sql = "SELECT * FROM produk";
+  <?php
+  $sql = "SELECT * FROM produk WHERE id='$detailID'";
+  $result = mysqli_query($conn, $sql);
 
-      $prev = '';
-      $next = '';
-
-      $page = 1;
-      if (isset($_GET['page']) && $_GET['page'] != null) {
-        $page = $_GET['page'];
-      }
-
-      $item_per_page = 4;
-      $total_item = mysqli_num_rows(mysqli_query($conn, $sql));
-      $total_page = ceil($total_item / $item_per_page);
-      $offset = ($page - 1) * $item_per_page;
-      $sql = "SELECT * FROM produk LIMIT $item_per_page OFFSET $offset";
-
-      $prev = $page == 1 ? 'disabled' : '';
-      $next = $page == $total_page ? 'disabled' : '';
-
-      if (isset($_GET['s'])) {
-        $search = $_GET['s'];
-        $sql = "SELECT * FROM produk WHERE nama_produk LIKE '%$search%'";
-        $page = 1;
-        if (isset($_GET['page']) && $_GET['page'] != null) {
-          $page = $_GET['page'];
-        }
-        $item_per_page = 4;
-        $total_item = mysqli_num_rows(mysqli_query($conn, $sql));
-        $total_page = ceil($total_item / $item_per_page);
-        $offset = ($page - 1) * $item_per_page;
-        $sql = "SELECT * FROM produk WHERE nama_produk LIKE '%$search%' LIMIT $item_per_page OFFSET $offset";
-      }
-
-      if (isset($_GET['k'])) {
-        $kategori = $_GET['k'];
-        $sql = "SELECT * FROM produk WHERE category_id LIKE '%$kategori%'";
-        $page = 1;
-        if (isset($_GET['page']) && $_GET['page'] != null) {
-          $page = $_GET['page'];
-        }
-        $item_per_page = 4;
-        $total_item = mysqli_num_rows(mysqli_query($conn, $sql));
-        $total_page = ceil($total_item / $item_per_page);
-        $offset = ($page - 1) * $item_per_page;
-        $sql = "SELECT * FROM produk WHERE category_id LIKE '%$kategori%' LIMIT $item_per_page OFFSET $offset";
-      }
-
-      $result = mysqli_query($conn, $sql);
-
-      if (mysqli_num_rows($result) > 0) {
-        while ($row = mysqli_fetch_assoc($result)) {
-      ?>
-
-
-          <div class="col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-sm-1 mt-3 d-flex justify-content-center">
-            <div class="card" style="width:300px">
-              <a href="./details.php?id=<?= $row['id'] ?>">
-                <img class="card-img-top" src="./img/<?= $row['gambar'] ?>" alt="Card image">
-              </a>
-              <div class="card-body">
-                <h4 class="card-title"><?= $row['nama_produk'] ?></h4>
-                <form action="addToCart.php" method="POST" autocomplete="off">
-                  <input type="hidden" name="product_id" value="<?= $row['id'] ?>">
-                  <p class="text-end fs-5 fw-bold" style="color: #725F63;">
-                    <u>Rp<?= number_format($row['harga'], 2, ',', '.'); ?></u>
-                  </p>
-                  <div class="mb-3">
-                    <label for="quantity" class="form-label">Kuantitas:</label>
-                    <input type="number" class="form-control" id="quantity" min="0" value="1" max="<?= $row['stok'] ?>" name="quantity">
-                  </div>
-                  <input type="hidden" name="nama_produk" value="<?= $row['nama_produk'] ?>">
-                  <input type="hidden" name="harga" value="<?= $row['harga'] ?>">
-                  <!-- Add other necessary hidden fields, if needed -->
-                  <div class="card-text d-flex justify-content-between">
-                    <p>Stok</p>
-                    <p><?= $row['stok'] ?></p>
-                  </div>
-                  <div class="text-end">
-                    <button type="submit" class="btn btn-primary btn-add-to-cart">Masukkan Keranjang</button>
-                  </div>
-                </form>
-              </div>
+  if (mysqli_num_rows($result) > 0) {
+    while ($row = mysqli_fetch_assoc($result)) {
+  ?>
+      <div class="container col-xxl-8 px-4 py-5">
+        <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+          <div class="col-10 col-sm-8 col-lg-6">
+            <img src="./img/<?= $row['gambar'] ?>" class="d-block mx-lg-auto img-fluid" alt="Image" width="700" height="500" loading="lazy">
+          </div>
+          <div class="col-lg-6">
+            <h1 class="display-5 fw-bold text-body-emphasis lh-1 mb-3"><?= $row['nama_produk'] ?></h1>
+            <p class="lead"><?= $row['detail'] ?></p>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+              <form action="addToCart.php" method="POST" autocomplete="off">
+                <input type="hidden" name="product_id" value="<?= $row['id'] ?>">
+                <p class="fs-5 fw-bold" style="color: #725F63;">
+                  <u>Rp<?= number_format($row['harga'], 2, ',', '.'); ?></u>
+                </p>
+                <div class="mb-3 form-floating d-flex justify-content-between">
+                  <input type="number" class="form-control" id="quantity" min="0" placeholder="" max="<?= $row['stok'] ?>" name="quantity">
+                  <label for="quantity">Kuantitas:</label>
+                  <p class="ms-2 my-auto">tersisa <span class="fw-bold"><?= $row['stok'] ?></span> buah</p>
+                </div>
+                <input type="hidden" name="nama_produk" value="<?= $row['nama_produk'] ?>">
+                <input type="hidden" name="harga" value="<?= $row['harga'] ?>">
+                <!-- Add other necessary hidden fields, if needed -->
+                <button type="submit" class="btn btn-primary btn-add-to-cart">Masukkan Keranjang</button>
+              </form>
             </div>
           </div>
-      <?php
-        }
-      }
-      ?>
-    </div>
-  </div>
+        </div>
+      </div>
+  <?php
+    }
+  }
+  ?>
   <!-- End Card -->
-
-  <!-- Start Pagination -->
-  <div class="container mt-3 d-flex justify-content-center">
-    <nav aria-label="Page navigation example">
-      <ul class="pagination">
-        <li class="page-item">
-          <a class="page-link <?= $prev ?>" href="?page=<?= $page - 1 ?>" aria-label="Previous">
-            <span aria-hidden="true">&laquo;</span>
-          </a>
-        </li>
-        <?php
-        for ($i = 0; $i < $total_page; $i++) {
-          if ($page == $i + 1) {
-            $page_status = "active";
-          } else {
-            $page_status = "";
-          }
-        ?>
-          <li class="page-item"><a class="page-link <?= $page_status; ?>" href="?page=<?= $i + 1; ?>"><?= $i + 1; ?></a></li>
-        <?php
-        }
-        ?>
-        <li class="page-item">
-          <a class="page-link <?= $next ?>" href="?page=<?= $page + 1 ?>" aria-label="Next">
-            <span aria-hidden="true">&raquo;</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
-  </div>
-  <!-- End Pagination -->
 
   <!-- Start Cart -->
   <div class="offcanvas offcanvas-end" tabindex="-1" id="cart" aria-labelledby="cartLabel">

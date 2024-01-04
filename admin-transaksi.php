@@ -12,23 +12,23 @@ if (isset($_POST['submit'])) {
   if (isset($_POST['editID']) && $_POST['editID'] != null && isset($_POST['edit_status']) && $_POST['edit_status'] != null) {
     $editID = $_POST['editID'];
     $edit_status = $_POST['edit_status'];
-    $sql = "UPDATE transactions SET status_id='$edit_status' WHERE id='$editID'";
+    $sql = "UPDATE transaksi SET status_id='$edit_status' WHERE id='$editID'";
     if (mysqli_query($conn, $sql)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">Status updated!</div>';
+      $status = '<div class="mt-3 alert alert-success" role="alert">Status berhasil diubah!</div>';
     } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to update status!</div>';
+      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengubah status!</div>';
     }
   }
 
   // DELETE TRANSAKSI
   if (isset($_POST['deleteID']) && $_POST['deleteID'] != null) {
     $deleteID = $_POST['deleteID'];
-    $transactions = "DELETE FROM transactions WHERE id='$deleteID'";
-    $transaction_details = "DELETE FROM transaction_details WHERE transactions_id='$deleteID'";
+    $transactions = "DELETE FROM transaksi WHERE id='$deleteID'";
+    $transaction_details = "DELETE FROM transaksi_detail WHERE transactions_id='$deleteID'";
     if (mysqli_query($conn, $transactions) && mysqli_query($conn, $transaction_details)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">Transaction successfully deleted!</div>';
+      $status = '<div class="mt-3 alert alert-success" role="alert">Penghapusan transaksi berhasil!</div>';
     } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to delete transaction!</div>';
+      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menghapus transaksi!</div>';
     }
   }
 }

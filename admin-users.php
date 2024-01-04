@@ -15,9 +15,9 @@ if (isset($_POST['submit'])) {
         $edit_privilege = $_POST['edit_privilege'];
         $sql = "UPDATE users SET privilege='$edit_privilege' WHERE id=$id";
         if (mysqli_query($conn, $sql)) {
-            $status = '<div class="mt-3 alert alert-success" role="alert">Privilege updated successfully!</div>';
+            $status = '<div class="mt-3 alert alert-success" role="alert">Privilege berhasil diubah!</div>';
         } else {
-            $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to change privilege!</div>';
+            $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengganti privilege!</div>';
         }
     }
     if (isset($_POST['edit_new_password']) && $_POST['edit_new_password'] != null && isset($_POST['edit_new_repassword']) && $_POST['edit_new_repassword'] != null) {
@@ -30,9 +30,9 @@ if (isset($_POST['submit'])) {
         } else {
             $sql = "UPDATE users SET username='$edit_username', password='$edit_new_password' WHERE id=$id";
             if (mysqli_query($conn, $sql)) {
-                $status = '<div class="mt-3 alert alert-success" role="alert">Password updated successfully!</div>';
+                $status = '<div class="mt-3 alert alert-success" role="alert">Password berhasil diubah!</div>';
             } else {
-                $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to change password!</div>';
+                $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengganti password!</div>';
             }
         }
     }
