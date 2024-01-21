@@ -148,8 +148,8 @@ if (isset($_POST['submit'])) {
   </header>
   <!-- End Navbar -->
 
+  <!-- Start Content -->
   <main>
-    <!-- Start Content -->
     <div class="container">
       <div class="row">
         <?= $file ?>
@@ -164,16 +164,23 @@ if (isset($_POST['submit'])) {
                 <th>Total</th>
                 <th>Metode Pembayaran</th>
                 <th>Status</th>
+                <th>Batas Pembayaran</th>
               </tr>
             </thead>
             <tbody>
               <?php
-              $sql = "SELECT tr.id, tr.timestamp, tr.total_amount, tr.payment_method, st.name FROM transaksi tr JOIN status st ON tr.status_id=st.id WHERE user_id='$userid' ORDER BY tr.id DESC";
+              $sql = "SELECT tr.id, tr.timestamp, tr.total_amount, tr.payment_method, st.name, tr.expiry_date FROM transaksi tr JOIN status st ON tr.status_id=st.id WHERE user_id='$userid' ORDER BY tr.id DESC";
 
               $result = mysqli_query($conn, $sql);
 
               if (mysqli_num_rows($result) > 0) {
                 while ($row = mysqli_fetch_assoc($result)) {
+                  $transID = $row['id'];
+                  $expiry_date = $row['expiry_date'];
+                  // Convert the timestamp to DateTime object
+                  $date = DateTime::createFromFormat('ymdHis', $expiry_date);
+                  // Format the DateTime object as per your requirement
+                  $formattedDate = $date->format('y-m-d H:i:s');
               ?>
                   <tr>
                     <td style="vertical-align: middle;">
@@ -200,6 +207,20 @@ if (isset($_POST['submit'])) {
                       }
                       ?>
                     </td>
+                    <td>
+                      <p><?= $formattedDate ?></p>
+                      <?php
+                      $liveclock = date("dmyHis");
+                      if ((int)$liveclock > (int)$expiry_date) {
+                        $sql = "UPDATE transaksi SET status_id = 6 WHERE id = '$transID'";
+                        if (mysqli_query($conn, $sql)) {
+                          $transStatus = 'Update success!';
+                        } else {
+                          $transStatus = 'Update failed';
+                        }
+                      }
+                      ?>
+                    </td>
                   </tr>
               <?php
                 }
@@ -213,6 +234,7 @@ if (isset($_POST['submit'])) {
                 <th>Total</th>
                 <th>Metode Pembayaran</th>
                 <th>Status</th>
+                <th>Batas Pembayaran</th>
               </tr>
             </tfoot>
           </table>
@@ -298,8 +320,8 @@ if (isset($_POST['submit'])) {
       </div>
     </div>
     <!-- End Cart -->
-    <!-- End Content -->
   </main>
+  <!-- End Content -->
 
   <!-- Start Footer -->
   <footer class="footer mt-auto py-3 bg-body-tertiary">

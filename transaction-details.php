@@ -47,8 +47,8 @@ $search = '';
                 <i class="fa-solid fa-user-tie"></i>
               </a>
               <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="./profile.php">My Profile</a></li>
-                <li><a class="dropdown-item" href="./transactions.php">Transactions</a></li>
+                <li><a class="dropdown-item" href="./profile.php">Profil</a></li>
+                <li><a class="dropdown-item" href="./transactions.php">Transaksi</a></li>
                 <li>
                   <hr class="dropdown-divider">
                 </li>
@@ -57,13 +57,13 @@ $search = '';
                 ?>
 
                   <li class="nav-item">
-                    <a class="dropdown-item" href="./logout.php">Logout</a>
+                    <a class="dropdown-item" href="./logout.php">Keluar</a>
                   </li>
                 <?php
                 } else {
                 ?>
                   <li class="nav-item">
-                    <a class="dropdown-item" href="./login.php">Login</a>
+                    <a class="dropdown-item" href="./login.php">Masuk</a>
                   </li>
                 <?php
                 }
@@ -240,17 +240,6 @@ $search = '';
     <!-- End Cart -->
   </main>
   <!-- End Content -->
-  <?php
-  $sql = "SELECT expiry_date FROM transaksi WHERE id='$transID'";
-  $res = mysqli_query($conn, $sql);
-  if (mysqli_num_rows($res) > 0) {
-    while ($row = mysqli_fetch_assoc($res)) {
-      $expiry_date = $row['expiry_date'];
-    }
-  }
-  ?>
-  <div id="compare"><?= $expiry_date ?></div>
-  <div id="clock"></div>
 
   <!-- Start Footer -->
   <footer class="footer mt-3 py-3 bg-body-tertiary">
@@ -287,34 +276,6 @@ $search = '';
 
     // Enable hover for the first dropdown
     enableDropdownHover('kategoriDropdown');
-
-    // LIVE CLOCK
-    var liveclock = document.getElementById('clock');
-    var compare = document.getElementById('compare');
-
-    function time() {
-      var d = new Date();
-      var D = ("0" + d.getDate()).substr(-2);
-      var M = ("0" + (d.getMonth() + 1)).substr(-2);
-      var Y = ("0" + d.getFullYear()).substr(-2);
-      var h = ("0" + d.getHours()).substr(-2);
-      var m = ("0" + d.getMinutes()).substr(-2);
-      var s = ("0" + d.getSeconds()).substr(-2);
-
-      liveclock.textContent = D + M + Y + h + m + s;
-      while (liveclock >= compare) {
-        <?php
-        $sql = "UPDATE transaksi SET status_id=6 WHERE id='$transID'";
-        if (mysqli_query($conn, $sql)) {
-        ?>
-          // window.alert('Dalam 2x24 jam tidak ada pembayaran. Transaksi dibatalkan!');
-          break;
-        <?php
-        }
-        ?>
-      }
-    }
-    setInterval(time, 1000);
   </script>
 </body>
 

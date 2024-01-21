@@ -57,12 +57,14 @@ if (isset($_GET['id']) && $_GET['id'] != '') {
               <tbody>
                 <!-- END HEADER TABEL -->
                 <?php
-                $sql = "SELECT * FROM transaksi_detail trd JOIN produk p ON trd.product_id=p.id WHERE transactions_id='$transID'";
+                $sql = "SELECT * FROM transaksi_detail trd JOIN produk p ON trd.product_id=p.id JOIN transaksi tr ON trd.transactions_id=tr.id WHERE transactions_id='$transID'";
                 $result = mysqli_query($conn, $sql);
                 $total = 0;
+                $payment_method = '';
                 if (mysqli_num_rows($result) > 0) {
                   while ($row = mysqli_fetch_assoc($result)) {
                     $total += $row['subtotal'];
+                    $payment_method = $row['payment_method'];
                 ?>
                     <tr>
                       <td><?= $row['nama_produk'] ?></td>
@@ -80,6 +82,9 @@ if (isset($_GET['id']) && $_GET['id'] != '') {
                   <th colspan="3" class="text-end">Total</th>
                   <th colspan="3" class="text-end">Rp <?= number_format($total, 2, ',', '.') ?></th>
                 </tr>
+                <tr>
+                  <td colspan="4" class="text-end">Metode Pembayaran: <?= $payment_method ?></td>
+                </tr>
               </tfoot>
             </table>
           </div>
@@ -96,7 +101,7 @@ if (isset($_GET['id']) && $_GET['id'] != '') {
           <div class="table-responsive">
             <table class="table table-borderless mx-auto" style="width: 75%;">
               <tr>
-                <td class="text-end"><?= $username ?></td>
+                <td class="text-end">Pembeli: <?= $username ?></td>
               </tr>
               <tr>
                 <?php
