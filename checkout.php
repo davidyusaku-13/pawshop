@@ -1,5 +1,4 @@
 <?php
-session_start();
 include 'config.php';
 
 if (!isset($_SESSION['userid'])) {
@@ -21,10 +20,11 @@ if (isset($_POST['checkout']) && isset($_SESSION['cart'])) {
       $price = $_SESSION['cart'][$i]['price'];
       $user_id = $_POST['user_id'];
       $payment_method = $_POST['payment_method'];
+      $expiry_date = date("dmyHis") + 20000000000;
       $subtotal = $quantity * $price;
       $total += $subtotal;
 
-      $stok = "SELECT * FROM product WHERE id='$product_id'";
+      $stok = "SELECT * FROM produk WHERE id='$product_id'";
       $stok = mysqli_query($conn, $stok);
       $finalStok = 0;
       if (mysqli_num_rows($stok) > 0) {
@@ -32,14 +32,14 @@ if (isset($_POST['checkout']) && isset($_SESSION['cart'])) {
           $finalStok = $row['stok'] - $quantity;
         }
       }
-      $products = "UPDATE product SET stok=$finalStok WHERE id='$product_id'";
+      $products = "UPDATE produk SET stok=$finalStok WHERE id='$product_id'";
       if (mysqli_query($conn, $products)) {
         // SUCCESS
       } else {
         // FAILED
       }
 
-      $transaction_details = "INSERT INTO transaction_details (id, transactions_id, product_id, quantity, unit_price, subtotal) VALUES (null, '$transID', $product_id, $quantity, $price, $subtotal)";
+      $transaction_details = "INSERT INTO transaksi_detail (id, transactions_id, product_id, quantity, unit_price, subtotal) VALUES (null, '$transID', $product_id, $quantity, $price, $subtotal)";
       if (mysqli_query($conn, $transaction_details)) {
         // SUCCESS
       } else {
@@ -49,7 +49,7 @@ if (isset($_POST['checkout']) && isset($_SESSION['cart'])) {
   } else {
     header('Location: index.php');
   }
-  $transactions = "INSERT INTO transactions (id, timestamp, user_id, total_amount, payment_method, status_id) VALUES ('$transID', '$transDate', $user_id, $total, '$payment_method', 1)";
+  $transactions = "INSERT INTO transaksi (id, timestamp, user_id, total_amount, payment_method, status_id, expiry_date) VALUES ('$transID', '$transDate', $user_id, $total, '$payment_method', 1, $expiry_date)";
   if (mysqli_query($conn, $transactions)) {
     // SUCCESS
 

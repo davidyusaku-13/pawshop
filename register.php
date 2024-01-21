@@ -1,6 +1,5 @@
 <?php
 include 'config.php';
-session_start();
 
 if (isset($_SESSION['userid']) && $_SESSION['userid'] != null) {
   header('Location: index.php');

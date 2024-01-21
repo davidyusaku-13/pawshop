@@ -1,5 +1,5 @@
 <?php
-if ($_SESSION['privilege'] != 'admin') {
+if ($privilege != 'admin') {
   header('Location: index.php');
 }
 ?>
@@ -19,7 +19,7 @@ if ($_SESSION['privilege'] != 'admin') {
 
 <body>
   <!-- Start Navbar -->
-  <nav class="navbar navbar-expand-sm navbar-dark bg-dark sticky-top">
+  <nav class="navbar navbar-expand-sm navbar-light bg-light sticky-top">
     <div class="container-fluid">
       <a class="navbar-brand" href="./index.php">
         <img src="./logo.png" height="30" alt="">
@@ -87,7 +87,7 @@ if ($_SESSION['privilege'] != 'admin') {
         <div class="col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-sm-1 mt-3 d-flex justify-content-center">
           <div class="card" style="width:300px">
             <div class="card-body text-center">
-              <img src="./img/cart-shopping-svgrepo-com.png" class="card-img-top w-25" alt="">
+              <!-- <img src="./img/cart-shopping-svgrepo-com.png" class="card-img-top w-25" alt=""> -->
               <h5 class="card-title"><?= $rowCount[$i] ?></h5>
               <a class="btn btn-secondary" href="./admin-<?= strtolower($dashboard[$i]) ?>.php" class="card-text"><?= $dashboard[$i] ?></a>
             </div>

@@ -1,8 +1,7 @@
 <?php
-session_start();
 include 'config.php';
 
-if ($_SESSION['privilege'] != 'admin') {
+if ($privilege != 'admin') {
   header('Location: index.php');
 }
 
@@ -50,7 +49,7 @@ if (isset($_POST['submit'])) {
 
 <body>
   <!-- Start Navbar -->
-  <nav class="navbar navbar-expand-sm navbar-dark bg-dark sticky-top">
+  <nav class="navbar navbar-expand-sm navbar-light bg-light sticky-top">
     <div class="container-fluid">
       <a class="navbar-brand" href="./index.php">
         <img src="./logo.png" height="30" alt="">
@@ -171,28 +170,36 @@ if (isset($_POST['submit'])) {
             <th>Total</th>
             <th>Metode Pembayaran</th>
             <th>Status</th>
+            <th>Bukti Pembayaran</th>
+            <th>Tanggal Kedaluarsa</th>
           </tr>
         </thead>
         <tbody>
           <?php
-          $fetch = "SELECT tr.id, tr.timestamp, u.username, tr.total_amount, tr.payment_method, st.name FROM transaksi tr JOIN users u ON tr.user_id=u.id JOIN status st ON tr.status_id=st.id ORDER BY tr.id DESC";
+          $fetch = "SELECT tr.id, tr.timestamp, u.username, tr.total_amount, tr.payment_method, tr.bukti_pembayaran, st.name, tr.expiry_date FROM transaksi tr JOIN users u ON tr.user_id=u.id JOIN status st ON tr.status_id=st.id ORDER BY tr.id DESC";
           $res = mysqli_query($conn, $fetch);
 
           if (mysqli_num_rows($res) > 0) {
             while ($row = mysqli_fetch_assoc($res)) {
           ?>
               <tr>
-                <td>
+                <td style="vertical-align: middle;">
                   <button class="btn" data-bs-toggle="modal" data-id="<?= $row['id']; ?>" data-bs-target="#deleteTransactions"><i class="fa-solid fa-trash"></i></button>
                 </td>
-                <td><?= $row['id']; ?></td>
-                <td><?= $row['timestamp']; ?></td>
-                <td><?= $row['username']; ?></td>
-                <td>Rp <?= number_format($row['total_amount']); ?></td>
-                <td><?= $row['payment_method']; ?></td>
-                <td>
+                <td style="vertical-align: middle;"><?= $row['id']; ?></td>
+                <td style="vertical-align: middle;"><?= $row['timestamp']; ?></td>
+                <td style="vertical-align: middle;"><?= $row['username']; ?></td>
+                <td style="vertical-align: middle;">Rp <?= number_format($row['total_amount']); ?></td>
+                <td style="vertical-align: middle;"><?= $row['payment_method']; ?></td>
+                <td style="vertical-align: middle;">
                   <?= $row['name']; ?>
                   <button class="btn" data-bs-toggle="modal" data-id="<?= $row['id']; ?>" data-bs-target="#editTransactions"><i class="fa-solid fa-edit"></i></button>
+                </td>
+                <td style="vertical-align: middle;">
+                  <a href="./img/<?= $row['bukti_pembayaran'] ?>"><?= $row['bukti_pembayaran'] ?></a>
+                </td>
+                <td style="vertical-align: middle;">
+                  <?= $row['expiry_date'] ?>
                 </td>
               </tr>
           <?php
@@ -210,6 +217,8 @@ if (isset($_POST['submit'])) {
             <th>Total</th>
             <th>Metode Pembayaran</th>
             <th>Status</th>
+            <th>Bukti Pembayaran</th>
+            <th>Tanggal Kedaluarsa</th>
           </tr>
         </tfoot>
       </table>

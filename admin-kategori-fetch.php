@@ -1,8 +1,7 @@
 <?php
-session_start();
 include 'config.php';
 
-if ($_SESSION['privilege'] != 'admin') {
+if ($privilege != 'admin') {
   header('Location: index.php');
 }
 

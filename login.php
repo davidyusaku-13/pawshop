@@ -1,6 +1,5 @@
 <?php
 include 'config.php';
-session_start();
 
 if (isset($_SESSION['userid']) && $_SESSION['userid'] != null) {
   header('Location: index.php');
@@ -15,10 +14,16 @@ if (isset($_POST['submit'])) {
     $sql = "SELECT * FROM users WHERE username='$username' AND password='$password'";
     $result = mysqli_query($conn, $sql);
 
-    if (mysqli_num_rows($result) > 0) {
-      while ($rows = mysqli_fetch_assoc($result)) {
-        $_SESSION['userid'] = $rows['id'];
-        $_SESSION['privilege'] = $rows['privilege'];
+    if ($result->num_rows > 0) {
+      while ($rows = $result->fetch_assoc()) {
+        if (isset($_POST['remember-me']) && $_POST['remember-me'] == "yes") {
+          setcookie('userid', $rows['id'], time() + (86400 * 30), "/"); // 86400 = 1 day
+          setcookie('privilege', $rows['privilege'], time() + (86400 * 30), "/"); // 86400 = 1 day
+          setcookie('remember-me', 'yes', time() + (86400 * 30), "/"); // 86400 = 1 day
+        } else {
+          $_SESSION['userid'] = $rows['id'];
+          $_SESSION['privilege'] = $rows['privilege'];
+        }
       }
       header('Location: index.php');
     } else {
@@ -82,7 +87,7 @@ if (isset($_POST['submit'])) {
       </div>
 
       <div class="form-check text-start my-3">
-        <input class="form-check-input" type="checkbox" value="remember-me" id="flexCheckDefault">
+        <input class="form-check-input" type="checkbox" name="remember-me" value="yes" id="flexCheckDefault">
         <label class="form-check-label" for="flexCheckDefault">
           Ingat saya
         </label>

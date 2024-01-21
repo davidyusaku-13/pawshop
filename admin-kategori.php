@@ -1,8 +1,7 @@
 <?php
-session_start();
 include 'config.php';
 
-if ($_SESSION['privilege'] != 'admin') {
+if ($privilege != 'admin') {
   header('Location: index.php');
 }
 
@@ -59,7 +58,7 @@ if (isset($_POST['submit'])) {
 
 <body>
   <!-- Start Navbar -->
-  <nav class="navbar navbar-expand-sm navbar-dark bg-dark sticky-top">
+  <nav class="navbar navbar-expand-sm navbar-light bg-light sticky-top">
     <div class="container-fluid">
       <a class="navbar-brand" href="./index.php">
         <img src="./logo.png" height="30" alt="">

@@ -1,8 +1,7 @@
 <?php
-session_start();
 include 'config.php';
 
-if (!isset($_SESSION['userid'])) {
+if (!isset($_COOKIE['userid'])) {
   header('Location: index.php');
 }
 
@@ -67,23 +66,23 @@ if (isset($_POST['submit'])) {
               <i class="fa-solid fa-user-tie"></i>
             </a>
             <ul class="dropdown-menu">
-              <li><a class="dropdown-item active" href="./profile.php">My Profile</a></li>
-              <li><a class="dropdown-item" href="./transactions.php">Transactions</a></li>
+              <li><a class="dropdown-item active" href="./profile.php">Profil</a></li>
+              <li><a class="dropdown-item" href="./transactions.php">Transaksi</a></li>
               <li>
                 <hr class="dropdown-divider">
               </li>
               <?php
-              if (isset($_SESSION['userid']) && $_SESSION['userid'] != null) {
+              if (isset($userid) && $userid != null) {
               ?>
 
                 <li class="nav-item">
-                  <a class="dropdown-item" href="./logout.php">Logout</a>
+                  <a class="dropdown-item" href="./logout.php">Keluar</a>
                 </li>
               <?php
               } else {
               ?>
                 <li class="nav-item">
-                  <a class="dropdown-item" href="./login.php">Login</a>
+                  <a class="dropdown-item" href="./login.php">Masuk</a>
                 </li>
               <?php
               }
@@ -131,8 +130,7 @@ if (isset($_POST['submit'])) {
   <div class="container">
     <div class="row">
       <?php
-      $id = $_SESSION['userid'];
-      $sql = "SELECT * FROM users WHERE id=$id";
+      $sql = "SELECT * FROM users WHERE id=$userid";
 
       $result = mysqli_query($conn, $sql);
 

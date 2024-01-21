@@ -1,6 +1,5 @@
 <?php
 include 'config.php';
-session_start();
 
 $search = '';
 $kategori = '';
@@ -13,10 +12,16 @@ if ($kategori == '') {
   $kategori_status = 'active';
 }
 
+$cart_status = '';
+if (isset($_SESSION['cart_status']) && $_SESSION['cart_status'] == 1) {
+  $cart_status = 'alert("Berhasil menambah keranjang!!");';
+}
+
 $transaction_status = '';
 if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] == 1) {
   $transaction_status = 'alert("Transaksi berhasil dibuat!!");';
 }
+
 ?>
 <!doctype html>
 <html lang="en">
@@ -145,7 +150,7 @@ if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] ==
                   <u>Rp<?= number_format($row['harga'], 2, ',', '.'); ?></u>
                 </p>
                 <div class="mb-3 form-floating d-flex justify-content-between">
-                  <input type="number" class="form-control" id="quantity" min="0" placeholder="" max="<?= $row['stok'] ?>" name="quantity">
+                  <input type="number" class="form-control" id="quantity" min="1" value="1" placeholder="" max="<?= $row['stok'] ?>" name="quantity">
                   <label for="quantity">Kuantitas:</label>
                   <p class="ms-2 my-auto">tersisa <span class="fw-bold"><?= $row['stok'] ?></span> buah</p>
                 </div>
@@ -256,8 +261,10 @@ if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] ==
   <script src="./js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
   <script src="./js/jquery-3.7.1.min.js"></script>
   <script>
+    <?= $cart_status; ?>
     <?= $transaction_status; ?>
     <?php
+    unset($_SESSION['cart_status']);
     unset($_SESSION['transaction_status']);
     ?>
 

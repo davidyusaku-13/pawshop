@@ -1,12 +1,5 @@
 <?php
 include 'config.php';
-session_start();
-
-$privilege = '';
-if (isset($_SESSION) && isset($_SESSION['userid']) && isset($_SESSION['privilege'])) {
-  $privilege = $_SESSION['privilege'];
-  $userid = $_SESSION['userid'];
-}
 
 $search = '';
 $kategori = '';
