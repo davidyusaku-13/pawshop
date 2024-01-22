@@ -13,6 +13,7 @@ if ($privilege != 'admin') {
   <link rel="icon" type="image/x-icon" href="./logo-title.png">
   <link href="./css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
   <link rel="stylesheet" href="./css/datatables.min.css">
+  <script src="./js/bootstrap.bundle.js"></script>
   <script src="./js/datatables.min.js"></script>
   <script src="https://kit.fontawesome.com/ec712a3d01.js" crossorigin="anonymous"></script>
 </head>
@@ -69,6 +70,7 @@ if ($privilege != 'admin') {
   <!-- Start Content -->
   <div class="container">
     <div class="row">
+      <h1 class="mt-3">Navigasi</h1>
       <?php
       $trCount = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM transaksi"));
       $prodCount = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM produk"));
@@ -77,7 +79,8 @@ if ($privilege != 'admin') {
       $userCount = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM users"));
 
       $rowCount = array($trCount, $prodCount, $catCount, $statCount, $userCount);
-      $dashboard = array("Transaksi", "Produk", "Kategori", "Status", "Users")
+      $dashboard = array("Transaksi", "Produk", "Kategori", "Status", "Users");
+      $image = array("cart-shopping-svgrepo-com", "box-svgrepo-com", "category-2-svgrepo-com", "status-information-svgrepo-com", "users-svgrepo-com");
       ?>
 
       <!-- Start Card -->
@@ -87,7 +90,7 @@ if ($privilege != 'admin') {
         <div class="col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-sm-1 mt-3 d-flex justify-content-center">
           <div class="card" style="width:300px">
             <div class="card-body text-center">
-              <!-- <img src="./img/cart-shopping-svgrepo-com.png" class="card-img-top w-25" alt=""> -->
+              <img src="./img/<?= $image[$i] ?>.png" class="card-img-top w-25" alt="">
               <h5 class="card-title"><?= $rowCount[$i] ?></h5>
               <a class="btn btn-secondary" href="./admin-<?= strtolower($dashboard[$i]) ?>.php" class="card-text"><?= $dashboard[$i] ?></a>
             </div>
@@ -97,9 +100,30 @@ if ($privilege != 'admin') {
       }
       ?>
       <!-- End Card -->
-
+      <hr class="mt-3">
     </div>
   </div>
+
+
+  <!-- START PROGRESSBAR -->
+  <div class="container">
+    <h1>Produk Terjual</h1>
+    <?php
+    $sql = 'SELECT p.nama_produk, COALESCE(SUM(trd.quantity), 0) AS total_terjual FROM produk p LEFT JOIN transaksi_detail trd ON p.id = trd.product_id GROUP BY p.id, p.nama_produk;';
+    $result = mysqli_query($conn, $sql);
+    if (mysqli_num_rows($result) > 0) {
+      while ($row = mysqli_fetch_assoc($result)) {
+    ?>
+        <p class="mt-3"><?= $row['nama_produk'] ?></p>
+        <div class="progress">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" style="width:<?= $row['total_terjual'] ?>%"><?= $row['total_terjual'] ?></div>
+        </div>
+    <?php
+      }
+    }
+    ?>
+  </div>
+  <!-- END PROGRESSBAR -->
   <!-- End Content -->
 
 
@@ -112,8 +136,6 @@ if ($privilege != 'admin') {
     </div>
   </footer>
   <!-- End Footer -->
-
-  <script src="./js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
   <script>
     new DataTable('#example');
   </script>
