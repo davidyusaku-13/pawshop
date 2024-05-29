@@ -34,62 +34,16 @@ if (isset($_GET['id']) && $_GET['id'] != '') {
     <div class="container mt-3">
       <div class="text-center">
         <img src="./logo-title.png" alt="" width="100em">
-        <h1>Pawshop</h1>
+        <h1>Pawshop </h1>
         <p>----------------------</p>
         <p><?= $transID; ?></p>
+
         <p>----------------------</p>
       </div>
       <!-- START HEADER TABEL -->
       <div class="row">
         <div class="col">
-
-          <!-- START TABLE -->
-          <div class="table-responsive">
-            <table class="table table-borderless mx-auto" style="width: 75%;">
-              <thead>
-                <tr>
-                  <th>Nama Produk</th>
-                  <th class="text-end">Qty</th>
-                  <th class="text-end">Harga</th>
-                  <th class="text-end">Subtotal</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- END HEADER TABEL -->
-                <?php
-                $sql = "SELECT * FROM transaksi_detail trd JOIN produk p ON trd.product_id=p.id JOIN transaksi tr ON trd.transactions_id=tr.id WHERE transactions_id='$transID'";
-                $result = mysqli_query($conn, $sql);
-                $total = 0;
-                $payment_method = '';
-                if (mysqli_num_rows($result) > 0) {
-                  while ($row = mysqli_fetch_assoc($result)) {
-                    $total += $row['subtotal'];
-                    $payment_method = $row['payment_method'];
-                ?>
-                    <tr>
-                      <td><?= $row['nama_produk'] ?></td>
-                      <td class="text-end"><?= $row['quantity'] ?></td>
-                      <td class="text-end">Rp <?= number_format($row['harga'], 2, ',', '.') ?></td>
-                      <td class="text-end">Rp <?= number_format($row['subtotal'], 2, ',', '.') ?></td>
-                    </tr>
-                <?php
-                  }
-                }
-                ?>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <th colspan="3" class="text-end">Total</th>
-                  <th colspan="3" class="text-end">Rp <?= number_format($total, 2, ',', '.') ?></th>
-                </tr>
-                <tr>
-                  <td colspan="4" class="text-end">Metode Pembayaran: <?= $payment_method ?></td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-          <!-- END TABLE -->
-          <?php
+        <?php
           $sql = "SELECT username FROM users WHERE id=$userid";
           $result = mysqli_query($conn, $sql);
           if (mysqli_num_rows($result) > 0) {
@@ -98,11 +52,9 @@ if (isset($_GET['id']) && $_GET['id'] != '') {
             }
           }
           ?>
+          <!-- START TABLE -->
           <div class="table-responsive">
             <table class="table table-borderless mx-auto" style="width: 75%;">
-              <tr>
-                <td class="text-end">Pembeli: <?= $username ?></td>
-              </tr>
               <tr>
                 <?php
                 $prefix = substr($transID, 0, 3);
@@ -124,7 +76,74 @@ if (isset($_GET['id']) && $_GET['id'] != '') {
                 ?>
                 <td class="text-end"><?= $output ?></td>
               </tr>
+              <tr>
+                <td class="text-end">Pembeli: <?= $username ?></td>
+              </tr>
             </table>
+          <div class="table-responsive">
+            <table class="table table-borderless mx-auto" style="width: 75%;">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Nama Produk</th>
+
+                  <th class="text-end">Jumlah</th>
+                  <th class="text-end">Harga</th>
+                  <th class="text-end">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- END HEADER TABEL -->
+                <?php
+                $sql = "SELECT * FROM transaksi_detail trd JOIN produk p ON trd.product_id=p.id JOIN transaksi tr ON trd.transactions_id=tr.id WHERE transactions_id='$transID'";
+                $result = mysqli_query($conn, $sql);
+                $total = 0;
+                $payment_method = '';
+                $c = 1;
+                if (mysqli_num_rows($result) > 0) {
+                    while ($row = mysqli_fetch_assoc($result)) {
+                        $total += $row['subtotal'];
+                        $payment_method = $row['payment_method'];
+                        ?>
+                        <tr>
+                            <td><?= $c ?></td>
+                            <td><?= $row['nama_produk'] ?></td>
+                            <td class="text-end"><?= $row['quantity'] ?></td>
+                            <td class="text-end">Rp <?= number_format($row['harga'], 2, ',', '.') ?></td>
+                            <td class="text-end">Rp <?= number_format($row['subtotal'], 2, ',', '.') ?></td>
+                        </tr>
+                        <?php
+                        $c++;
+                    }
+                }
+
+                ?>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th colspan="4" class="text-end">Total</th>
+                  <th colspan="4" class="text-end">Rp <?= number_format($total, 2, ',', '.') ?></th>
+                </tr>
+                <tr>
+                  <td colspan="5" class="text-end">Metode Pembayaran: <?= $payment_method ?></td>
+                </tr>
+                <tr>
+                  <td colspan="5" class="text-end"> Best regards, </td>
+                </tr>
+                <tr>
+                  <td > </td>
+                </tr>
+                <tr>
+                  <td > </td>
+                </tr>
+                <tr>
+                <td colspan="5" class="text-end">Pawshop Team </td>
+              </tr>
+              </tfoot>
+            </table>
+          </div>
+          <!-- END TABLE -->
+          
           </div>
 
         </div>

@@ -1,0 +1,9 @@
+#20639B pemasukan
+#ED553B gatau
+#3CAEA3 stok
+#F6D55C transaksi
+#173F5F grafik
+#DCDDDD background
+#353E52 kiri
+#293144 bulatan avatar
+#8495B3 tulisan kiri

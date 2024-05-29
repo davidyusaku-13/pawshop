@@ -1,166 +1,576 @@
 <?php
-if ($privilege != 'admin') {
-  header('Location: index.php');
+
+if (!isset($userid)) {
+  header('Location: login.php');
 }
+
+$updateProdukStatus = '';
+$updateTransaksiStatus = '';
+
+if (isset($_POST['transaksi-edit-simpan'])) {
+  if ($_POST['transaksi-edit-id'] != '' && $_POST['transaksi-edit-status'] != '') {
+    $transID = $_POST['transaksi-edit-id'];
+    $status = $_POST['transaksi-edit-status'];
+
+    $updateTransaksi = "UPDATE transaksi SET status_id='$status' WHERE id='$transID'";
+    if ($conn->query($updateTransaksi) === TRUE) {
+      $updateTransaksiStatus = '<script>window.alert("Berhasil mengubah status!!");</script>';
+    } else {
+      $updateTransaksiStatus = '<script>window.alert("Gagal mengubah status!!");</script>';
+    }
+  }
+}
+
+if (isset($_POST['stok-edit-simpan'])) {
+  if (
+    $_POST['stok-edit-id'] != '' && $_POST['stok-edit-nama'] != '' && $_POST['stok-edit-kategori'] != '' && $_POST['stok-edit-stok'] != '' && $_POST['stok-edit-harga'] != '' && $_POST['stok-edit-detail'] != ''
+  ) {
+    $prodID = $_POST['stok-edit-id'];
+    $nama_produk = $_POST['stok-edit-nama'];
+    $category_id = $_POST['stok-edit-kategori'];
+    $stok = $_POST['stok-edit-stok'];
+    $harga = $_POST['stok-edit-harga'];
+    $detail = $_POST['stok-edit-detail'];
+
+    if ($_FILES['stok-edit-gambar']['name'] == '') {
+      // JIKA TANPA FILE
+      $updateProduk = "UPDATE produk SET nama_produk='$nama_produk', category_id='$category_id', stok='$stok', harga='$harga', detail='$detail' WHERE id=$prodID";
+    } else {
+      // DENGAN UPLOAD FILE BARU
+    }
+
+    if ($conn->query($updateProduk) === TRUE) {
+      $updateProdukStatus = '<script>window.alert("Berhasil mengubah produk!!");</script>';
+    } else {
+      $updateProdukStatus = '<script>window.alert("Gagal mengubah produk!!");</script>';
+    }
+  }
+}
+
+$minStok = 20;
+
 ?>
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pawshop | Dashboard</title>
-  <link rel="icon" type="image/x-icon" href="./logo-title.png">
-  <link href="./css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-  <link rel="stylesheet" href="./css/datatables.min.css">
-  <link rel="stylesheet" href="./css/sidebar.css">
-  <script src="./js/sidebar.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "pawshop-pemasukan": "#20639B",
+            "pawshop-gatau": "#ED553B",
+            "pawshop-stok": "#3CAEA3",
+            "pawshop-transaksi": "#F6D55C",
+            "pawshop-grafik": "#173F5F",
+            "pawshop-background": "#DCDDDD",
+            "pawshop-kiri": "#353E52",
+            "pawshop-bulatan-avatar": "#293144",
+            "pawshop-tulisan-kiri": "#8495B3",
+            "pawshop-yellow-darker": "#E0B828",
+            "pawshop-maurin-pink": "rgb(255, 150, 215)",
+          },
+        },
+      },
+    }
+  </script>
+  <script src="https://kit.fontawesome.com/ec712a3d01.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+  <link rel="shortcut icon" href="./logo-title.png" type="image/x-icon" />
   <style>
     body {
-      font-family: 'Montserrat', sans-serif;
+      font-family: "Montserrat", sans-serif;
     }
   </style>
-  <script src="./js/bootstrap.bundle.js"></script>
-  <script src="./js/datatables.min.js"></script>
-  <script src="https://kit.fontawesome.com/ec712a3d01.js" crossorigin="anonymous"></script>
+  <title>Pawshop | Dasbor</title>
 </head>
 
-<body id="body-pd" style="background-color: #DCDDDD;">
-  <header class="header" id="header">
-    <div class="header_toggle"> <i class='bx bx-menu' id="header-toggle"></i> </div>
-    <div class="header_img"> <img src="./logo-title.png" alt=""> </div>
-  </header>
-  <div class="l-navbar" id="nav-bar">
-    <nav class="nav">
-      <div>
-        <!-- <a href="#" class="nav_logo"> <i class='bx bx-layer nav_logo-icon'></i> <span class="nav_logo-name">BBBootstrap</span> </a> -->
-        <div class="nav_list">
-          <a href="./index.php" class="nav_link active"><i class='bx bx-grid-alt nav_icon'></i><span class="nav_name">Dasbor</span></a>
-          <a href="#" class="nav_link"><img src="./paw.png" class="nav_icon" width="18em" alt=""><span class="nav_name">Produk</span></a>
-          <a href="#" class="nav_link"><i class='bx bx-user nav_icon'></i><span class="nav_name">Pengguna</span></a>
-          <a href="#" class="nav_link"><i class='bx bx-bar-chart-alt-2 nav_icon'></i> <span class="nav_name">Laporan</span></a>
-        </div>
-      </div> <a href="./logout.php" class="nav_link"><i class='bx bx-log-out nav_icon'></i><span class="nav_name">Keluar</span></a>
-    </nav>
-  </div>
+<body class="bg-pawshop-background">
+  <?= $updateTransaksiStatus ?>
+  <?= $updateProdukStatus ?>
+  <!-- CONTENT WRAPPER -->
+  <div class="flex">
 
-  <!-- Start Content -->
-  <div class="container">
-    <div class="row">
-      <!-- Start Card Pemasukan -->
-      <div class="col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-sm-1 mt-3 d-flex justify-content-center">
-        <div class="card text-white rounded-4" style="width:300px; background-color: #20639B;">
-          <div class="card-body ms-3 mt-2">
-            <p class="fs-6 fw-bold">PEMASUKAN</p>
+    <!-- SIDEBAR -->
+    <div class="bg-pawshop-kiri text-pawshop-tulisan-kiri h-svh basis-1/6 flex flex-col justify-between items-center text-center">
+      <div class="mt-8 w-full flex flex-col items-center text-center">
+        <a href="./index.php">
+          <svg class="w-1/2 mx-auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+            <path d="M399 384.2C376.9 345.8 335.4 320 288 320H224c-47.4 0-88.9 25.8-111 64.2c35.2 39.2 86.2 63.8 143 63.8s107.8-24.7 143-63.8zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm256 16a72 72 0 1 0 0-144 72 72 0 1 0 0 144z" />
+          </svg>
+        </a>
+        <span class="mt-4 font-bold">ADMIN</span>
+      </div>
+      <div class="w-full">
+        <nav>
+          <ul class="flex flex-col text-start">
+            <li class="px-8 py-2 hover:bg-pawshop-background bg-pawshop-background">
+              <a class="flex flex-row justify-evenly items-center" href="./index.php">
+                <i class="basis1/4 fa-solid fa-house"></i>
+                <span class="basis-3/4">Dasbor</span>
+              </a>
+            </li>
+            <li class="px-8 py-2 hover:bg-pawshop-background">
+              <a class="flex flex-row justify-evenly items-center" href="./admin-produk.php">
+                <img src="./paw.png" class="w-4" alt="">
+                <span class="basis-3/4">Produk</span>
+              </a>
+            </li>
+            <li class="px-8 py-2 hover:bg-pawshop-background">
+              <a class="flex flex-row justify-evenly items-center" href="./admin-users.php">
+                <i class="basis1/4 fa-solid fa-user"></i>
+                <span class="basis-3/4">Pengguna</span>
+              </a>
+            </li>
+            <li class="px-8 py-2 hover:bg-pawshop-background">
+              <a class="flex flex-row justify-evenly items-center" href="./admin-report.php">
+                <i class="basis1/4 fa-solid fa-chart-simple"></i>
+                <span class="basis-3/4">Laporan</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+      <div class="mb-16">
+        <a class="bg-pawshop-gatau px-8 py-2 text-pawshop-kiri font-bold" href="./logout.php">LOGOUT</a>
+      </div>
+    </div>
+    <!-- SIDEBAR -->
+
+    <!-- MAIN CONTENT -->
+    <div class="m-auto">
+      <!-- LOGO -->
+      <div class="flex justify-end mb-3">
+        <img src="./logo.png" class="w-48" alt="">
+      </div>
+      <!-- LOGO -->
+      <!-- CARD -->
+      <div class="basis-5/6 grid grid-cols-2 gap-4">
+        <div class="bg-pawshop-pemasukan rounded-lg text-white pl-8 pr-28 py-8">
+          <h1 class="font-semibold text-lg">PEMASUKAN (TOTAL)</h1>
+          <?php
+          $sql = "SELECT * FROM transaksi";
+          $result = $conn->query($sql);
+          $pemasukan = 0;
+          if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+              $pemasukan += $row['total_amount'];
+            }
+          }
+          ?>
+          <h2 class="font-black text-2xl">Rp <?= number_format($pemasukan, 2, ",", ".") ?></h2>
+        </div>
+        <div class="bg-pawshop-gatau rounded-lg text-white pl-8 pr-28 py-8">
+          <h1 class="font-semibold text-lg">PEMASUKAN (HARIAN)</h1>
+          <?php
+          $datenow = date("d-m-Y");
+          $sql = "SELECT SUM(total_amount) AS harian FROM transaksi WHERE timestamp='$datenow'";
+          $result = $conn->query($sql);
+          if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+              $harian = $row['harian'];
+            }
+          }
+          ?>
+          <h2 class="font-black text-2xl">Rp <?= number_format($harian, 2, ",", ".") ?></h2>
+        </div>
+        <div class="bg-pawshop-stok rounded-lg text-white pl-8 pr-28 py-8">
+          <div class="flex items-center">
+            <h1 class="font-semibold text-lg">STOK</h1>
             <?php
-            $sql = "SELECT SUM(total_amount) AS pemasukan FROM transaksi";
-            $result = mysqli_query($conn, $sql);
-            if (mysqli_num_rows($result) > 0) {
-              while ($row = mysqli_fetch_assoc($result)) {
-                $pemasukan = $row['pemasukan'];
+            $sql = "SELECT * FROM produk WHERE stok<$minStok";
+            $result = $conn->query($sql);
+            $c = 0;
+            if ($result->num_rows > 0) {
+              while ($row = $result->fetch_assoc()) {
+                $c += 1;
               }
             }
             ?>
-            <p class="fs-5" style="font-weight: 900;">Rp <?= number_format($pemasukan, 2, ",", ".") ?></p>
+            <span class="flex ml-2 bg-red-600 items-center justify-center rounded-full border w-6 h-6 text-xs"><?= $c ?></span>
           </div>
-        </div>
-      </div>
-      <!-- End Card Pemasukan -->
+          <button data-modal-target="modal-stok" data-modal-toggle="modal-stok" class="font-black text-2xl" type="button">
+            <?= $c ?> Produk Hampir Habis
+          </button>
 
-      <!-- Start Card GATAU -->
-      <div class="col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-sm-1 mt-3 d-flex justify-content-center">
-        <div class="card text-white rounded-4" style="width:300px; background-color: #ED553B;">
-          <div class="card-body ms-3 mt-2">
-            <p class="fs-6 fw-bold">GATAU</p>
-            <p class="fs-5" style="font-weight: 900;">Rp 150.000,00</p>
-          </div>
-        </div>
-      </div>
-      <!-- End Card GATAU -->
-
-      <!-- Start Card Produk Stok Habis -->
-      <div class="col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-sm-1 mt-3 d-flex justify-content-center">
-        <div class="card text-white rounded-4" style="width:300px; background-color: #3CAEA3;">
-          <div class="card-body ms-3 mt-2">
-            <p class="fs-6 fw-bold position-relative">
-              PRODUK
-              <span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle">
-                <span class="visually-hidden">New alerts</span>
-              </span>
-            </p>
-            <p class="fs-5" style="font-weight: 900;">3 Produk Hampir Habis</p>
-          </div>
-        </div>
-      </div>
-      <!-- End Card Produk Stok Habis -->
-
-      <!-- Start Card Notif Transaksi -->
-      <div class="col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-sm-1 mt-3 d-flex justify-content-center">
-        <div class="card text-white rounded-4" style="width:300px; background-color: #F6D55C;">
-          <div class="card-body ms-3 mt-2">
-            <p class="fs-6 fw-bold position-relative">
-              TRANSAKSI
-              <span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle">
-                <span class="visually-hidden">New alerts</span>
-              </span>
-            </p>
-            <p class="fs-5" style="font-weight: 900;">2 Pemberitahuan</p>
-          </div>
-        </div>
-      </div>
-      <!-- End Card Notif Transaksi -->
-    </div>
-  </div>
-
-  <!-- START PROGRESSBAR GRAFIK PENJUALAN -->
-  <div class="container mt-4">
-    <div class="row">
-      <div class="col d-flex justify-content-center">
-        <div class="card text-white rounded-4" style="width:100%; background-color: #173F5F;">
-          <div class="card-body ms-3 mt-2">
-            <p class="fs-6 fw-bold">GRAFIK PENJUALAN (PER KATEGORI)</p>
-            <?php
-            $sql = "SELECT name, SUM(produk_terjual) AS total_terjual_per_kategori, SUM(total_stok) AS total_stok FROM (SELECT p.category_id, SUM(quantity) AS produk_terjual, SUM(stok) AS total_stok FROM transaksi_detail trd JOIN produk p ON trd.product_id = p.id GROUP BY p.id, p.category_id) AS derived_table JOIN kategori k ON category_id=k.id GROUP BY category_id";
-            $result = mysqli_query($conn, $sql);
-            if (mysqli_num_rows($result) > 0) {
-              $color = array("#ED553B", "#3CAEA3", "#E0B828", "#ffc9d4");
-              $c = 0;
-              while ($row = mysqli_fetch_assoc($result)) {
-                $persentase = $row['total_terjual_per_kategori'] / ($row['total_stok'] + $row['total_terjual_per_kategori']) * 100;
-                $persentase = number_format($persentase, 0);
-            ?>
-                <?= $row['name'] ?>
-                <div class="progress me-3" role="progressbar" aria-label="Basic example" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
-                  <div class="progress-bar" style="background-color:<?= $color[$c] ?>;width: <?= $persentase ?>%"><?= $persentase ?>%</div>
+          <!-- MODAL STOK -->
+          <!-- Main modal -->
+          <div id="modal-stok" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+            <div class="relative p-4 w-full max-w-2xl max-h-full">
+              <!-- Modal content -->
+              <div class="relative bg-white rounded-lg shadow">
+                <!-- Modal header -->
+                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                  <h3 class="text-xl font-semibold text-gray-900">
+                    <?= $c ?> Produk Hampir Habis
+                  </h3>
+                  <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="modal-stok">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                  </button>
                 </div>
-                <p><?= $row['total_terjual_per_kategori'] ?> dari <?= $row['total_stok'] + $row['total_terjual_per_kategori'] ?></p>
+                <!-- Modal body -->
+                <div class="p-4 md:p-5 space-y-4 mx-auto text-gray-900">
+                  <div class="flex flex-col w-full">
+                    <div class="flex w-full mx-auto justify-between items-center">
+                      <h1 class="font-bold basis-1/12 text-center">No</h1>
+                      <h1 class="font-bold basis-10/12 text-center">Nama Produk</h1>
+                      <h1 class="font-bold basis-1/12 text-center">Stok</h1>
+                    </div>
+                    <?php
+                    $sql = "SELECT * FROM produk WHERE stok<$minStok";
+                    $result = $conn->query($sql);
+                    $c = 0;
+                    if ($result->num_rows > 0) {
+                      $c = 0;
+                      while ($row = $result->fetch_assoc()) {
+                        $editID = $row['id'];
+                        $c += 1;
+                    ?>
+                        <div class="flex w-full mx-auto justify-between items-start">
+                          <p class="basis-1/12 text-center"><?= $c ?></p>
+                          <p class="basis-10/12 text-start"><?= $row['nama_produk'] ?></p>
+                          <p class="basis-1/12 text-center flex">
+                            <span class="basis-1/2">
+                              <?= $row['stok'] ?>
+                            </span>
+                            <span class="basis-1/2">
+                              <button data-modal-target="modal-edit-stok-<?= $editID ?>" data-modal-toggle="modal-edit-stok-<?= $editID ?>" data-modal-hide="modal-stok">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                              </button>
+                            </span>
+                          </p>
+                        </div>
+                    <?php
+                      }
+                    }
+                    ?>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- MODAL STOK -->
+
+          <?php
+          $outer = "SELECT * FROM produk WHERE stok<$minStok";
+          $resultOuter = $conn->query($outer);
+          if ($resultOuter->num_rows > 0) {
+            while ($rowOuter = $resultOuter->fetch_assoc()) {
+          ?>
+              <!-- MODAL EDIT STOK -->
+              <!-- Main modal -->
+              <div id="modal-edit-stok-<?= $rowOuter['id'] ?>" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                <div class="relative p-4 w-full max-w-2xl max-h-full">
+                  <!-- Modal content -->
+                  <div class="relative bg-white rounded-lg shadow">
+                    <!-- Modal header -->
+                    <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                      <h3 class="text-xl font-semibold text-gray-900">
+                        Edit Produk
+                      </h3>
+                      <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-target="modal-stok" data-modal-toggle="modal-stok" data-modal-hide="modal-edit-stok-<?= $rowOuter['id'] ?>">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                        </svg>
+                        <span class="sr-only">Close modal</span>
+                      </button>
+                    </div>
+                    <!-- Modal body -->
+                    <div class="p-4 md:p-5 space-y-4 mx-auto text-gray-900">
+                      <div class="flex flex-col w-full">
+                        <?php
+                        $editID = $rowOuter['id'];
+                        $sql = "SELECT * FROM produk p JOIN kategori k ON p.category_id=k.id WHERE p.id=$editID";
+                        $result = $conn->query($sql);
+                        $c = 0;
+                        if ($result->num_rows > 0) {
+                          $c = 0;
+                          while ($row = $result->fetch_assoc()) {
+                            $c += 1;
+                        ?>
+                            <div>
+                              <form action="" method="POST" enctype="multipart/form-data" class="flex flex-col w-full mx-auto justify-between items-center">
+                                <input type="hidden" name="stok-edit-id" value="<?= $rowOuter['id'] ?>">
+                                <div class="flex w-full items-center">
+                                  <label class="basis-2/12 font-semibold" for="stok-edit-gambar">Gambar</label>
+                                  <span class="basis-1/12">:</span>
+                                  <input type="file" name="stok-edit-gambar" class="basis-9/12 w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-pawshop-grafik file:text-pawshop-tulisan-kiri hover:file:bg-pawshop-background">
+                                </div>
+                                <div class="flex w-full items-center mt-2">
+                                  <label class="basis-2/12 font-semibold" for="stok-edit-nama">Nama Produk</label>
+                                  <span class="basis-1/12">:</span>
+                                  <input required type="text" name="stok-edit-nama" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full" value="<?= $row['nama_produk'] ?>">
+                                </div>
+                                <div class="flex w-full items-center mt-2">
+                                  <label class="basis-2/12 font-semibold" for="stok-edit-kategori">Kategori</label>
+                                  <span class="basis-1/12">:</span>
+                                  <select required name="stok-edit-kategori" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full">
+                                    <option disabled>Pilih Kategori</option>
+                                    <?php
+                                    $kategori = "SELECT * FROM kategori";
+                                    $resKategori = $conn->query($kategori);
+                                    if ($resKategori->num_rows > 0) {
+                                      while ($rowKategori = $resKategori->fetch_assoc()) {
+                                        if ($row['category_id'] == $rowKategori['id']) {
+                                          $select = "selected";
+                                        } else {
+                                          $select = "";
+                                        }
+                                    ?>
+                                        <option <?= $select ?> value="<?= $rowKategori['id'] ?>"><?= $rowKategori['name'] ?></option>
+                                    <?php
+                                      }
+                                    }
+                                    ?>
+                                  </select>
+                                </div>
+                                <div class="flex w-full items-center mt-2">
+                                  <label class="basis-2/12 font-semibold" for="stok-edit-stok">Stok</label>
+                                  <span class="basis-1/12">:</span>
+                                  <input required type="number" min="0" name="stok-edit-stok" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full" value="<?= $row['stok'] ?>">
+                                </div>
+                                <div class="flex w-full items-center mt-2">
+                                  <label class="basis-2/12 font-semibold" for="stok-edit-harga">Harga</label>
+                                  <span class="basis-1/12">:</span>
+                                  <input required type="number" name="stok-edit-harga" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full" value="<?= $row['harga'] ?>">
+                                </div>
+                                <div class="flex w-full items-center mt-2">
+                                  <label class="basis-2/12 font-semibold" for="stok-edit-detail">Detail</label>
+                                  <span class="basis-1/12">:</span>
+                                  <textarea required name="stok-edit-detail" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full" cols="30" rows="5"><?= $row['detail'] ?></textarea>
+                                </div>
+                                <div class="flex justify-end w-full items-center mt-2">
+                                  <button class="border rounded p-2 bg-pawshop-grafik text-white font-semibold" type="submit" name="stok-edit-simpan">SIMPAN</button>
+                                </div>
+                              </form>
+                            </div>
+                        <?php
+                          }
+                        }
+                        ?>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- MODAL EDIT STOK -->
+          <?php
+            }
+          }
+          ?>
+
+        </div>
+
+        <div class="bg-pawshop-transaksi rounded-lg text-white pl-8 pr-28 py-8">
+          <div class="flex items-center">
+            <h1 class="font-semibold text-lg">TRANSAKSI</h1>
             <?php
-                $c++;
+            $sql = "SELECT * FROM transaksi WHERE status_id=1 OR status_id=3";
+            $result = $conn->query($sql);
+            $c = 0;
+            if ($result->num_rows > 0) {
+              while ($row = $result->fetch_assoc()) {
+                $c += 1;
               }
             }
             ?>
+            <span class="flex ml-2 bg-red-600 items-center justify-center rounded-full border w-6 h-6 text-xs"><?= $c ?></span>
           </div>
+          <button data-modal-target="modal-transaksi" data-modal-toggle="modal-transaksi" class="font-black text-2xl" type="button">
+            <?= $c ?> Pemberitahuan
+          </button>
+
+
+          <!-- MODAL STOK -->
+          <!-- Main modal -->
+          <div id="modal-transaksi" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+            <div class="relative p-4 w-full max-w-2xl max-h-full">
+              <!-- Modal content -->
+              <div class="relative bg-white rounded-lg shadow">
+                <!-- Modal header -->
+                <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                  <h3 class="text-xl font-semibold text-gray-900">
+                    <?= $c ?> Pemberitahuan
+                  </h3>
+                  <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="modal-transaksi">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                  </button>
+                </div>
+                <!-- Modal body -->
+                <div class="p-4 md:p-5 space-y-4 mx-auto text-gray-900">
+                  <div class="flex flex-col w-full">
+                    <div class="flex w-full mx-auto justify-between items-center">
+                      <h1 class="font-bold basis-1/12 text-center">No</h1>
+                      <h1 class="font-bold basis-3/12 text-center">Transaksi</h1>
+                      <h1 class="font-bold basis-8/12 text-center">Status</h1>
+                    </div>
+                    <?php
+                    $sql = "SELECT t.id, s.name FROM transaksi t JOIN status s ON t.status_id=s.id WHERE status_id=1 OR status_id=3";
+                    $result = $conn->query($sql);
+                    $c = 0;
+                    if ($result->num_rows > 0) {
+                      $c = 0;
+                      while ($row = $result->fetch_assoc()) {
+                        $editID = $row['id'];
+                        $c += 1;
+                    ?>
+                        <div class="flex w-full mx-auto justify-between items-start">
+                          <p class="basis-1/12 text-center"><?= $c ?></p>
+                          <p class="basis-3/12 text-center"><?= $row['id'] ?></p>
+                          <p class="basis-8/12 text-center flex">
+                            <span class="basis-11/12">
+                              <?= $row['name'] ?>
+                            </span>
+                            <span class="basis-1/12">
+                              <button data-modal-target="modal-edit-transaksi-<?= $editID ?>" data-modal-toggle="modal-edit-transaksi-<?= $editID ?>" data-modal-hide="modal-transaksi">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                              </button>
+                            </span>
+                          </p>
+                        </div>
+                    <?php
+                      }
+                    }
+                    ?>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- MODAL STOK -->
+
+          <?php
+          $outer = "SELECT * FROM transaksi WHERE status_id=1 OR status_id=3";
+          $resultOuter = $conn->query($outer);
+          if ($resultOuter->num_rows > 0) {
+            while ($rowOuter = $resultOuter->fetch_assoc()) {
+          ?>
+              <!-- MODAL EDIT TRANSAKSI -->
+              <!-- Main modal -->
+              <div id="modal-edit-transaksi-<?= $rowOuter['id'] ?>" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+                <div class="relative p-4 w-full max-w-2xl max-h-full">
+                  <!-- Modal content -->
+                  <div class="relative bg-white rounded-lg shadow">
+                    <!-- Modal header -->
+                    <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+                      <h3 class="text-xl font-semibold text-gray-900">
+                        Edit Transaksi
+                      </h3>
+                      <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-target="modal-transaksi" data-modal-toggle="modal-transaksi" data-modal-hide="modal-edit-transaksi-<?= $rowOuter['id'] ?>">
+                        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+                        </svg>
+                        <span class="sr-only">Close modal</span>
+                      </button>
+                    </div>
+                    <!-- Modal body -->
+                    <div class="p-4 md:p-5 space-y-4 mx-auto text-gray-900">
+                      <div class="flex flex-col w-full">
+                        <?php
+                        $editID = $rowOuter['id'];
+                        $sql = "SELECT * FROM transaksi WHERE id='$editID'";
+                        $result = $conn->query($sql);
+                        $c = 0;
+                        if ($result->num_rows > 0) {
+                          $c = 0;
+                          while ($row = $result->fetch_assoc()) {
+                            $c += 1;
+                        ?>
+                            <div>
+                              <form action="" method="POST" enctype="multipart/form-data" class="flex flex-col w-full mx-auto justify-between items-center">
+                                <input type="hidden" name="transaksi-edit-id" value="<?= $rowOuter['id'] ?>">
+                                <div class="flex w-full items-center mt-2">
+                                  <label class="basis-2/12 font-semibold" for="transaksi-edit-status">Status</label>
+                                  <span class="basis-1/12">:</span>
+                                  <select required name="transaksi-edit-status" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full">
+                                    <option disabled>Pilih Status</option>
+                                    <?php
+                                    $status = "SELECT * FROM status";
+                                    $resStatus = $conn->query($status);
+                                    if ($resStatus->num_rows > 0) {
+                                      while ($rowStatus = $resStatus->fetch_assoc()) {
+                                        if ($row['category_id'] == $rowStatus['id']) {
+                                          $select = "selected";
+                                        } else {
+                                          $select = "";
+                                        }
+                                    ?>
+                                        <option <?= $select ?> value="<?= $rowStatus['id'] ?>"><?= $rowStatus['name'] ?></option>
+                                    <?php
+                                      }
+                                    }
+                                    ?>
+                                  </select>
+                                </div>
+                                <div class="flex justify-end w-full items-center mt-2">
+                                  <button class="border rounded p-2 bg-pawshop-grafik text-white font-semibold" type="submit" name="transaksi-edit-simpan">SIMPAN</button>
+                                </div>
+                              </form>
+                            </div>
+                        <?php
+                          }
+                        }
+                        ?>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- MODAL EDIT TRANSAKSI -->
+          <?php
+            }
+          }
+          ?>
+
         </div>
       </div>
+      <!-- CARD -->
+
+      <!-- GRAFIK -->
+      <div class="mt-4 bg-pawshop-grafik text-white rounded-lg p-6">
+        <div>
+          <h1 class="font-bold text-xl mb-2">GRAFIK PENJUALAN (PER KATEGORI)</h1>
+        </div>
+        <?php
+        $colors = array("pawshop-gatau", "pawshop-stok", "pawshop-yellow-darker", "pawshop-maurin-pink");
+        $c = 0;
+        $sql = "SELECT k.name, SUM(p.stok) AS total_stok, COALESCE(total_sold, 0) AS total_sold FROM produk p JOIN kategori k ON p.category_id = k.id LEFT JOIN ( SELECT k.id AS category_id, SUM(quantity) AS total_sold FROM transaksi_detail trd JOIN produk p ON trd.product_id = p.id JOIN kategori k ON p.category_id = k.id GROUP BY k.id ) sold_totals ON k.id = sold_totals.category_id GROUP BY k.id";
+        $result = $conn->query($sql);
+        if ($result->num_rows > 0) {
+          while ($row = $result->fetch_assoc()) {
+            $persentase = $row['total_sold'] / ($row['total_stok'] + $row['total_sold']) * 100;
+        ?>
+            <div>
+              <h1><?= $row['name'] ?></h1>
+              <div class="w-full bg-white rounded-full">
+                <div class="bg-<?= $colors[$c] ?> text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full" style="width: <?= $persentase ?>%">
+                  <?= number_format($persentase) ?>%
+                </div>
+              </div>
+              <h1><?= $row['total_sold'] ?> dari <?= $row['total_stok'] + $row['total_sold'] ?></h1>
+            </div>
+        <?php
+            $c++;
+          }
+        }
+        ?>
+      </div>
+      <!-- GRAFIK -->
     </div>
+    <!-- MAIN CONTENT -->
   </div>
-  </div>
-  <!-- END PROGRESSBAR GRAFIK PENJUALAN -->
-  <!-- End Content -->
-
-
-  <!-- Start Footer -->
-  <footer>
-  </footer>
-  <!-- End Footer -->
-
-  <script>
-    new DataTable('#example');
-  </script>
+  <!-- CONTENT WRAPPER -->
 </body>
 
 </html>

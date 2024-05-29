@@ -1,7 +1,7 @@
 <?php
 include 'config.php';
 
-if (isset($_SESSION['userid']) && $_SESSION['userid'] != null) {
+if ((isset($_SESSION['userid']) && $_SESSION['userid'] != null) || (isset($_COOKIE['userid']) && $_COOKIE['userid'] != null)) {
   header('Location: index.php');
 }
 

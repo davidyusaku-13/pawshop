@@ -1,11 +1,11 @@
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 :root {
   --header-height: 3rem;
   --nav-width: 68px;
   --first-color: #353e52;
   --first-color-light: #afa5d9;
   --white-color: #dcdddd;
-  --body-font: "Nunito", sans-serif;
+  --body-font: "Montserrat", sans-serif;
   --normal-font-size: 1rem;
   --z-fixed: 100;
 }
@@ -124,6 +124,7 @@ a {
 .height-100 {
   height: 100vh;
 }
+
 @media screen and (min-width: 768px) {
   body {
     margin: calc(var(--header-height) + 1rem) 0 0 0;

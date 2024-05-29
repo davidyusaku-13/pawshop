@@ -13,12 +13,14 @@ $dbname = "pawshop";
 // $dbname = "dave3253_kb2";
 
 // Create connection
-$conn = mysqli_connect($servername, $username, $password, $dbname);
+$conn = new mysqli($servername, $username, $password, $dbname);
 
 // Check connection
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
+
+$conn->autocommit(TRUE);
 
 date_default_timezone_set("Asia/Jakarta");
 
