@@ -17,7 +17,6 @@ if (isset($_SESSION['transaction_status']) && $_SESSION['transaction_status'] ==
   $transaction_status = 'alert("Transaksi berhasil dibuat!!");';
 }
 
-// At the beginning of your PHP logic
 $item_per_page = isset($_GET['itemsPerPage']) ? intval($_GET['itemsPerPage']) : 4;
 
 ?>
@@ -128,7 +127,7 @@ $item_per_page = isset($_GET['itemsPerPage']) ? intval($_GET['itemsPerPage']) : 
   <!-- Start Content -->
   <main>
     <!-- Start Carousel -->
-    <div id="carouselPawshop" class="carousel slide" data-bs-touch="true">
+    <div id="carouselPawshop" class="carousel slide container" data-bs-touch="true">
       <div class="carousel-inner">
         <div class="carousel-item active">
           <img src="./img/carousel1.jpg" class="d-block img-fluid" alt="./img/carousel1.jpg">

@@ -3,7 +3,7 @@ session_start();
 include('config.php');
 
 if (!isset($userid) || $userid == '') {
-  header('Location: login.php');
+  echo "<script>alert('Anda harus login untuk menambahkan keranjang!');location.href = 'login.php';</script>";
 } else {
   if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['product_id']) && isset($_POST['quantity'])) {

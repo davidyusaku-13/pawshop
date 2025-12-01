@@ -6,12 +6,6 @@ $username = "root";
 $password = "";
 $dbname = "pawshop";
 
-// PUBLISH
-// $servername = "localhost";
-// $username = "dave3253_david";
-// $password = "D-KILL3DX+";
-// $dbname = "dave3253_kb2";
-
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
