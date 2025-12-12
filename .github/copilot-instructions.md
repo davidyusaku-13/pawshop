@@ -41,18 +41,47 @@ status       → id, name (order statuses: 'Menunggu Konfirmasi', 'Menunggu Pemb
 
 ### Database Queries
 
-- Uses `mysqli` procedural and OOP style interchangeably
-- Direct SQL string interpolation (not parameterized) - **maintain consistency but be aware of injection risks**
-- Example fetch pattern:
+- Uses prepared statement helpers from `includes/db.php` for SQL injection protection
+- **All queries must use parameter binding** - never interpolate variables directly into SQL
+- Type specifiers for bindings: `i` (integer), `s` (string), `d` (double), `b` (blob)
+
+**Single row fetch with `dbFetchOne()`:**
 
 ```php
-$sql = "SELECT * FROM produk WHERE id='$id'";
-$result = mysqli_query($conn, $sql);
-if (mysqli_num_rows($result) > 0) {
-    while ($row = mysqli_fetch_assoc($result)) {
-        // process $row
-    }
+$product = dbFetchOne("SELECT * FROM produk WHERE id = ?", 'i', [$id]);
+if ($product) {
+    // process $product['nama_produk'], $product['harga'], etc.
 }
+```
+
+**Multiple rows fetch with `dbFetchAll()`:**
+
+```php
+$products = dbFetchAll(
+    "SELECT p.*, k.name as kategori FROM produk p JOIN kategori k ON p.category_id = k.id WHERE p.stok > ?",
+    'i',
+    [0]
+);
+foreach ($products as $row) {
+    // process each $row
+}
+```
+
+**Insert/Update/Delete with `dbQuery()`:**
+
+```php
+// Insert
+$result = dbQuery(
+    "INSERT INTO produk (nama_produk, category_id, stok, harga) VALUES (?, ?, ?, ?)",
+    'siid',
+    [$name, $categoryId, $stock, $price]
+);
+
+// Update
+$result = dbQuery("UPDATE produk SET stok = ? WHERE id = ?", 'ii', [$newStock, $id]);
+
+// Delete
+$result = dbQuery("DELETE FROM produk WHERE id = ?", 'i', [$id]);
 ```
 
 ### AJAX Data Endpoints
