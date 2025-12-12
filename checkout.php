@@ -43,6 +43,7 @@ if (!$user_id) {
 $success = dbTransaction(function ($conn) use ($user_id, $payment_method) {
     $cart = $_SESSION['cart'];
     $total = 0;
+    $validatedItems = [];
 
     // Generate transaction ID
     $transID = "TRS" . date("dmyHis");
@@ -50,7 +51,7 @@ $success = dbTransaction(function ($conn) use ($user_id, $payment_method) {
     $expiry_date = strtotime('+2 days');
     $expiry_formatted = date("dmyHis", $expiry_date);
 
-    // Validate and update stock for each item (with row locking)
+    // Validate stock and fetch DB prices for each item (with row locking)
     foreach ($cart as $item) {
         $product_id = sanitizeInt($item['id']);
         $quantity = sanitizePositiveInt($item['quantity']);
@@ -59,8 +60,8 @@ $success = dbTransaction(function ($conn) use ($user_id, $payment_method) {
             throw new Exception('Data keranjang tidak valid');
         }
 
-        // Lock the row and check stock atomically
-        $stmt = $conn->prepare("SELECT stok FROM produk WHERE id = ? FOR UPDATE");
+        // Lock the row and fetch stock + price atomically
+        $stmt = $conn->prepare("SELECT stok, harga, nama_produk FROM produk WHERE id = ? FOR UPDATE");
         $stmt->bind_param('i', $product_id);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -71,21 +72,33 @@ $success = dbTransaction(function ($conn) use ($user_id, $payment_method) {
         }
 
         if ($product['stok'] < $quantity) {
-            throw new Exception('Stok tidak mencukupi untuk: ' . e($item['name']));
+            throw new Exception('Stok tidak mencukupi untuk: ' . e($product['nama_produk']));
         }
 
-        // Update stock atomically
-        $newStock = $product['stok'] - $quantity;
+        // Use DB-verified price
+        $db_unit_price = (int) $product['harga'];
+        $subtotal = $quantity * $db_unit_price;
+
+        // Store validated item data for later use
+        $validatedItems[] = [
+            'product_id' => $product_id,
+            'quantity' => $quantity,
+            'unit_price' => $db_unit_price,
+            'subtotal' => $subtotal,
+            'current_stock' => (int) $product['stok']
+        ];
+
+        $total += $subtotal;
+    }
+
+    // Update stock for all validated items
+    foreach ($validatedItems as $validItem) {
+        $newStock = $validItem['current_stock'] - $validItem['quantity'];
         $updateStmt = $conn->prepare("UPDATE produk SET stok = ? WHERE id = ?");
-        $updateStmt->bind_param('ii', $newStock, $product_id);
+        $updateStmt->bind_param('ii', $newStock, $validItem['product_id']);
         if (!$updateStmt->execute()) {
             throw new Exception('Gagal mengupdate stok');
         }
-
-        // Calculate subtotal
-        $price = sanitizeInt($item['price']);
-        $subtotal = $quantity * $price;
-        $total += $subtotal;
     }
 
     // Insert transaction
@@ -98,18 +111,13 @@ $success = dbTransaction(function ($conn) use ($user_id, $payment_method) {
         throw new Exception('Gagal membuat transaksi');
     }
 
-    // Insert transaction details
-    foreach ($cart as $item) {
-        $product_id = sanitizeInt($item['id']);
-        $quantity = sanitizePositiveInt($item['quantity']);
-        $price = sanitizeInt($item['price']);
-        $subtotal = $quantity * $price;
-
+    // Insert transaction details using validated DB prices
+    foreach ($validatedItems as $validItem) {
         $stmt = $conn->prepare(
             "INSERT INTO transaksi_detail (transactions_id, product_id, quantity, unit_price, subtotal)
              VALUES (?, ?, ?, ?, ?)"
         );
-        $stmt->bind_param('siiii', $transID, $product_id, $quantity, $price, $subtotal);
+        $stmt->bind_param('siiii', $transID, $validItem['product_id'], $validItem['quantity'], $validItem['unit_price'], $validItem['subtotal']);
         if (!$stmt->execute()) {
             throw new Exception('Gagal menyimpan detail transaksi');
         }
