@@ -15,8 +15,8 @@ Pawshop is a PHP e-commerce application for pet (cat) supplies with role-based a
 
 ### Database Schema (MySQL - `pawshop.sql`)
 
-```
-users        → id, username, password (MD5), phone_number, privilege ('admin'|'user')
+```text
+users        → id, username, password (bcrypt; legacy MD5 upgraded on login), phone_number, privilege ('admin'|'user')
 produk       → id, gambar, nama_produk, category_id, stok, harga, detail
 kategori     → id, name
 transaksi    → id (TRS+datetime), timestamp, user_id, total_amount, payment_method, status_id, bukti_pembayaran, expiry_date
@@ -28,8 +28,26 @@ status       → id, name (order statuses: 'Menunggu Konfirmasi', 'Menunggu Pemb
 
 - Session + cookie-based auth in `config.php` (included everywhere)
 - Globals `$userid` and `$privilege` set from `$_SESSION` or `$_COOKIE`
-- Admin check: `if ($privilege != 'admin') { header('Location: index.php'); }`
-- User check: `if (!isset($userid)) { header('Location: index.php'); }`
+- Use helper functions from `includes/auth.php` for access control:
+  - `requireLogin()` - Redirects to login page if user is not authenticated
+  - `requireAdmin()` - Redirects to index if user is not an admin
+  - `isLoggedIn()` - Returns boolean for conditional checks
+  - `isAdmin()` - Returns boolean for admin privilege checks
+
+**Usage examples:**
+
+```php
+// At the top of any page requiring login
+requireLogin();
+
+// At the top of admin-only pages
+requireAdmin();
+
+// For conditional UI elements
+<?php if (isLoggedIn()): ?>
+    <a href="logout.php">Logout</a>
+<?php endif; ?>
+```
 
 ### Cart System (Session-based)
 

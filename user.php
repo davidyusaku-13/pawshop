@@ -1,9 +1,9 @@
 <?php
 
 $search = get('s');
-$kategori = get('k');
+$kategori = getPositiveInt('k', 0);
 
-if ($kategori == '') {
+if ($kategori === 0) {
     $kategori_status = 'active';
 }
 
@@ -90,7 +90,7 @@ $total = 0;
                                 <?php
                                 $categories = dbFetchAll("SELECT * FROM kategori");
                                 foreach ($categories as $row):
-                                    $active = ($kategori == $row['id']) ? 'active' : '';
+                                    $active = ($kategori === (int)$row['id']) ? 'active' : '';
                                 ?>
                                     <li><a class="dropdown-item <?= $active ?>" href="?k=<?= e($row['id']) ?>"><?= e($row['name']) ?></a></li>
                                 <?php endforeach; ?>
@@ -167,7 +167,7 @@ $total = 0;
                     $searchParam = "%$search%";
                     $params[] = $searchParam;
                     $types .= 's';
-                } elseif (!empty($kategori)) {
+                } elseif ($kategori > 0) {
                     $whereClause = "WHERE category_id = ?";
                     $params[] = $kategori;
                     $types .= 'i';
@@ -235,17 +235,17 @@ $total = 0;
             <nav aria-label="Page navigation example">
                 <ul class="pagination">
                     <li class="page-item">
-                        <a class="page-link <?= $prev ?>" href="?page=<?= $page - 1 ?><?= $search ? '&s=' . urlencode($search) : '' ?><?= $kategori ? '&k=' . urlencode($kategori) : '' ?>" aria-label="Previous">
+                        <a class="page-link <?= $prev ?>" href="?page=<?= $page - 1 ?><?= $search ? '&s=' . urlencode($search) : '' ?><?= $kategori > 0 ? '&k=' . $kategori : '' ?>" aria-label="Previous">
                             <span aria-hidden="true">&laquo;</span>
                         </a>
                     </li>
                     <?php for ($i = 0; $i < $total_page; $i++):
                         $page_status = ($page == $i + 1) ? "active" : "";
                     ?>
-                        <li class="page-item"><a class="page-link <?= $page_status ?>" href="?page=<?= $i + 1 ?><?= $search ? '&s=' . urlencode($search) : '' ?><?= $kategori ? '&k=' . urlencode($kategori) : '' ?>"><?= $i + 1 ?></a></li>
+                        <li class="page-item"><a class="page-link <?= $page_status ?>" href="?page=<?= $i + 1 ?><?= $search ? '&s=' . urlencode($search) : '' ?><?= $kategori > 0 ? '&k=' . $kategori : '' ?>"><?= $i + 1 ?></a></li>
                     <?php endfor; ?>
                     <li class="page-item">
-                        <a class="page-link <?= $next ?>" href="?page=<?= $page + 1 ?><?= $search ? '&s=' . urlencode($search) : '' ?><?= $kategori ? '&k=' . urlencode($kategori) : '' ?>" aria-label="Next">
+                        <a class="page-link <?= $next ?>" href="?page=<?= $page + 1 ?><?= $search ? '&s=' . urlencode($search) : '' ?><?= $kategori > 0 ? '&k=' . $kategori : '' ?>" aria-label="Next">
                             <span aria-hidden="true">&raquo;</span>
                         </a>
                     </li>

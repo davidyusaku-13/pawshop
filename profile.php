@@ -19,8 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Only process if all password fields are filled
         if (!empty($oldpassword) && !empty($newpassword) && !empty($newrepassword)) {
-            // Verify current user ID matches session
-            if ($id !== $userid) {
+            // Verify current user ID matches session (cast $userid to int for proper comparison)
+            if ($id !== (int)$userid) {
                 $status = '<div class="mt-3 alert alert-danger" role="alert">Akses tidak diizinkan!</div>';
             } else {
                 // Get current password hash
