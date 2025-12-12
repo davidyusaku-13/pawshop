@@ -1,48 +1,77 @@
 <?php
-session_start();
-include('config.php');
+include 'config.php';
 
-if (!isset($userid) || $userid == '') {
-  echo "<script>alert('Anda harus login untuk menambahkan keranjang!');location.href = 'login.php';</script>";
-} else {
-  if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['product_id']) && isset($_POST['quantity'])) {
-      $product_id = $_POST['product_id'];
-      $quantity = $_POST['quantity'];
-
-      // Initialize cart if not already exists
-      if (!isset($_SESSION['cart'])) {
-        $_SESSION['cart'] = array();
-      }
-
-      // Check if the product is already in the cart
-      $item_exists = false;
-      foreach ($_SESSION['cart'] as &$item) {
-        if ($item['id'] == $product_id) {
-          // Product already in cart, update quantity
-          $item['quantity'] += $quantity;
-          $item_exists = true;
-          $_SESSION['cart_status'] = 1;
-          break;
-        }
-      }
-
-      // If the product is not in the cart, add it
-      if (!$item_exists) {
-        $_SESSION['cart'][] = array(
-          'id' => $product_id,
-          'quantity' => $quantity,
-          'name' => $_POST['nama_produk'],
-          'price' => $_POST['harga'],
-
-          // Add other necessary fields, if needed
-        );
-        $_SESSION['cart_status'] = 1;
-      }
-
-      // Redirect back to the previous page
-      header("Location: " . $_SERVER['HTTP_REFERER']);
-      exit();
-    }
-  }
+// Require login
+if (!isLoggedIn()) {
+    echo "<script>alert('Anda harus login untuk menambahkan keranjang!');location.href = 'login.php';</script>";
+    exit;
 }
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Validate CSRF token
+    if (!csrfValidate()) {
+        $_SESSION['cart_error'] = 'Sesi tidak valid';
+        header("Location: " . ($_SERVER['HTTP_REFERER'] ?? 'index.php'));
+        exit;
+    }
+
+    $product_id = postPositiveInt('product_id');
+    $quantity = postPositiveInt('quantity', 1);
+
+    if ($product_id <= 0 || $quantity <= 0) {
+        header("Location: " . ($_SERVER['HTTP_REFERER'] ?? 'index.php'));
+        exit;
+    }
+
+    // Verify product exists and has stock
+    $product = dbFetchOne(
+        "SELECT id, nama_produk, harga, stok FROM produk WHERE id = ?",
+        'i',
+        [$product_id]
+    );
+
+    if (!$product || $product['stok'] < $quantity) {
+        $_SESSION['cart_error'] = 'Stok tidak mencukupi';
+        header("Location: " . ($_SERVER['HTTP_REFERER'] ?? 'index.php'));
+        exit;
+    }
+
+    // Initialize cart if not exists
+    if (!isset($_SESSION['cart'])) {
+        $_SESSION['cart'] = [];
+    }
+
+    // Check if product already in cart
+    $item_exists = false;
+    foreach ($_SESSION['cart'] as &$item) {
+        if ($item['id'] == $product_id) {
+            // Check if total quantity doesn't exceed stock
+            $newQty = $item['quantity'] + $quantity;
+            if ($newQty > $product['stok']) {
+                $newQty = $product['stok'];
+            }
+            $item['quantity'] = $newQty;
+            $item_exists = true;
+            $_SESSION['cart_status'] = 1;
+            break;
+        }
+    }
+    unset($item);
+
+    // Add new item if not exists
+    if (!$item_exists) {
+        $_SESSION['cart'][] = [
+            'id' => $product_id,
+            'quantity' => min($quantity, $product['stok']),
+            'name' => $product['nama_produk'],
+            'price' => $product['harga']
+        ];
+        $_SESSION['cart_status'] = 1;
+    }
+
+    header("Location: " . ($_SERVER['HTTP_REFERER'] ?? 'index.php'));
+    exit;
+}
+
+header("Location: index.php");
+exit;

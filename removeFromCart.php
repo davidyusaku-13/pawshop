@@ -1,24 +1,28 @@
 <?php
-session_start();
+include 'config.php';
 
-if (!isset($_SESSION)) {
-  header('Location: index.php');
+// Require login
+requireLogin();
+
+// Validate CSRF token (from query string for GET request)
+$csrf_token = get('csrf_token');
+if (!csrfValidate($csrf_token)) {
+    header('Location: index.php');
+    exit;
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "GET") {
-  if (isset($_GET['product_id'])) {
-    $product_id = $_GET['product_id'];
+$product_id = getPositiveInt('product_id');
 
-    // Remove item from the cart
+if ($product_id > 0 && isset($_SESSION['cart'])) {
     foreach ($_SESSION['cart'] as $key => $item) {
-      if ($item['id'] == $product_id) {
-        unset($_SESSION['cart'][$key]);
-        break;
-      }
+        if ($item['id'] == $product_id) {
+            unset($_SESSION['cart'][$key]);
+            break;
+        }
     }
-
-    // Redirect back to the cart page
-    header("Location: " . $_SERVER['HTTP_REFERER']);
-    exit();
-  }
+    // Re-index array
+    $_SESSION['cart'] = array_values($_SESSION['cart']);
 }
+
+header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? 'index.php'));
+exit;

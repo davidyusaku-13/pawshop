@@ -1,53 +1,85 @@
 <?php
 
-if (!isset($userid)) {
-  header('Location: login.php');
-}
+// Require admin access
+requireAdmin();
 
 $updateProdukStatus = '';
 $updateTransaksiStatus = '';
 
-if (isset($_POST['transaksi-edit-simpan'])) {
-  if ($_POST['transaksi-edit-id'] != '' && $_POST['transaksi-edit-status'] != '') {
-    $transID = $_POST['transaksi-edit-id'];
-    $status = $_POST['transaksi-edit-status'];
+// Handle transaction status update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['transaksi-edit-simpan'])) {
+  if (csrfValidate()) {
+    $transID = post('transaksi-edit-id');
+    $status = postPositiveInt('transaksi-edit-status');
 
-    $updateTransaksi = "UPDATE transaksi SET status_id='$status' WHERE id='$transID'";
-    if ($conn->query($updateTransaksi) === TRUE) {
-      $updateTransaksiStatus = '<script>window.alert("Berhasil mengubah status!!");</script>';
-    } else {
-      $updateTransaksiStatus = '<script>window.alert("Gagal mengubah status!!");</script>';
+    if (!empty($transID) && $status > 0) {
+      $result = dbQuery(
+        "UPDATE transaksi SET status_id = ? WHERE id = ?",
+        'is',
+        [$status, $transID]
+      );
+      if ($result) {
+        $updateTransaksiStatus = '<script>window.alert("Berhasil mengubah status!!");</script>';
+      } else {
+        $updateTransaksiStatus = '<script>window.alert("Gagal mengubah status!!");</script>';
+      }
     }
   }
 }
 
-if (isset($_POST['stok-edit-simpan'])) {
-  if (
-    $_POST['stok-edit-id'] != '' && $_POST['stok-edit-nama'] != '' && $_POST['stok-edit-kategori'] != '' && $_POST['stok-edit-stok'] != '' && $_POST['stok-edit-harga'] != '' && $_POST['stok-edit-detail'] != ''
-  ) {
-    $prodID = $_POST['stok-edit-id'];
-    $nama_produk = $_POST['stok-edit-nama'];
-    $category_id = $_POST['stok-edit-kategori'];
-    $stok = $_POST['stok-edit-stok'];
-    $harga = $_POST['stok-edit-harga'];
-    $detail = $_POST['stok-edit-detail'];
+// Handle product stock update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['stok-edit-simpan'])) {
+  if (csrfValidate()) {
+    $prodID = postPositiveInt('stok-edit-id');
+    $nama_produk = post('stok-edit-nama');
+    $category_id = postPositiveInt('stok-edit-kategori');
+    $stok = postPositiveInt('stok-edit-stok');
+    $harga = postPositiveInt('stok-edit-harga');
+    $detail = post('stok-edit-detail');
 
-    if ($_FILES['stok-edit-gambar']['name'] == '') {
-      // JIKA TANPA FILE
-      $updateProduk = "UPDATE produk SET nama_produk='$nama_produk', category_id='$category_id', stok='$stok', harga='$harga', detail='$detail' WHERE id=$prodID";
-    } else {
-      // DENGAN UPLOAD FILE BARU
-    }
-
-    if ($conn->query($updateProduk) === TRUE) {
-      $updateProdukStatus = '<script>window.alert("Berhasil mengubah produk!!");</script>';
-    } else {
-      $updateProdukStatus = '<script>window.alert("Gagal mengubah produk!!");</script>';
+    if ($prodID > 0 && !empty($nama_produk) && $category_id > 0) {
+      // Handle file upload if present
+      if (isset($_FILES['stok-edit-gambar']) && $_FILES['stok-edit-gambar']['name'] != '') {
+        $errors = validateImageUpload($_FILES['stok-edit-gambar']);
+        if (empty($errors)) {
+          $newFilename = generateSafeFilename($_FILES['stok-edit-gambar']['name']);
+          $targetPath = UPLOAD_DIR . $newFilename;
+          if (move_uploaded_file($_FILES['stok-edit-gambar']['tmp_name'], $targetPath)) {
+            $result = dbQuery(
+              "UPDATE produk SET gambar = ?, nama_produk = ?, category_id = ?, stok = ?, harga = ?, detail = ? WHERE id = ?",
+              'ssiiisi',
+              [$newFilename, $nama_produk, $category_id, $stok, $harga, $detail, $prodID]
+            );
+            if ($result) {
+              $updateProdukStatus = '<script>window.alert("Berhasil mengubah produk!!");</script>';
+            } else {
+              $updateProdukStatus = '<script>window.alert("Gagal menyimpan data produk!!");</script>';
+            }
+          } else {
+            $updateProdukStatus = '<script>window.alert("Gagal mengupload gambar!!");</script>';
+            error_log("Failed to move uploaded file to: " . $targetPath);
+          }
+        } else {
+          $updateProdukStatus = '<script>window.alert(' . eJs(implode(', ', $errors)) . ');</script>';
+        }
+      } else {
+        // Update without changing image
+        $result = dbQuery(
+          "UPDATE produk SET nama_produk = ?, category_id = ?, stok = ?, harga = ?, detail = ? WHERE id = ?",
+          'siiisi',
+          [$nama_produk, $category_id, $stok, $harga, $detail, $prodID]
+        );
+        if ($result) {
+          $updateProdukStatus = '<script>window.alert("Berhasil mengubah produk!!");</script>';
+        } else {
+          $updateProdukStatus = '<script>window.alert("Gagal mengubah produk!!");</script>';
+        }
+      }
     }
   }
 }
 
-$minStok = 20;
+$minStok = MIN_STOCK_ALERT;
 
 ?>
 <!DOCTYPE html>
@@ -154,48 +186,34 @@ $minStok = 20;
         <div class="bg-pawshop-pemasukan rounded-lg text-white pl-8 pr-28 py-8">
           <h1 class="font-semibold text-lg">PEMASUKAN (TOTAL)</h1>
           <?php
-          $sql = "SELECT * FROM transaksi";
-          $result = $conn->query($sql);
+          $result = dbFetchAll("SELECT total_amount FROM transaksi");
           $pemasukan = 0;
-          if ($result->num_rows > 0) {
-            while ($row = $result->fetch_assoc()) {
-              $pemasukan += $row['total_amount'];
-            }
+          foreach ($result as $row) {
+            $pemasukan += $row['total_amount'];
           }
           ?>
-          <h2 class="font-black text-2xl">Rp <?= number_format($pemasukan, 2, ",", ".") ?></h2>
+          <h2 class="font-black text-2xl">Rp <?= e(number_format($pemasukan, 2, ",", ".")) ?></h2>
         </div>
         <div class="bg-pawshop-gatau rounded-lg text-white pl-8 pr-28 py-8">
           <h1 class="font-semibold text-lg">PEMASUKAN (HARIAN)</h1>
           <?php
           $datenow = date("d-m-Y");
-          $sql = "SELECT SUM(total_amount) AS harian FROM transaksi WHERE timestamp='$datenow'";
-          $result = $conn->query($sql);
-          if ($result->num_rows > 0) {
-            while ($row = $result->fetch_assoc()) {
-              $harian = $row['harian'];
-            }
-          }
+          $result = dbFetchOne("SELECT SUM(total_amount) AS harian FROM transaksi WHERE timestamp = ?", 's', [$datenow]);
+          $harian = $result['harian'] ?? 0;
           ?>
-          <h2 class="font-black text-2xl">Rp <?= number_format($harian, 2, ",", ".") ?></h2>
+          <h2 class="font-black text-2xl">Rp <?= e(number_format($harian, 2, ",", ".")) ?></h2>
         </div>
         <div class="bg-pawshop-stok rounded-lg text-white pl-8 pr-28 py-8">
           <div class="flex items-center">
             <h1 class="font-semibold text-lg">STOK</h1>
             <?php
-            $sql = "SELECT * FROM produk WHERE stok<$minStok";
-            $result = $conn->query($sql);
-            $c = 0;
-            if ($result->num_rows > 0) {
-              while ($row = $result->fetch_assoc()) {
-                $c += 1;
-              }
-            }
+            $lowStockProducts = dbFetchAll("SELECT id, nama_produk, stok FROM produk WHERE stok < ?", 'i', [$minStok]);
+            $lowStockCount = count($lowStockProducts);
             ?>
-            <span class="flex ml-2 bg-red-600 items-center justify-center rounded-full border w-6 h-6 text-xs"><?= $c ?></span>
+            <span class="flex ml-2 bg-red-600 items-center justify-center rounded-full border w-6 h-6 text-xs"><?= e($lowStockCount) ?></span>
           </div>
           <button data-modal-target="modal-stok" data-modal-toggle="modal-stok" class="font-black text-2xl" type="button">
-            <?= $c ?> Produk Hampir Habis
+            <?= e($lowStockCount) ?> Produk Hampir Habis
           </button>
 
           <!-- MODAL STOK -->
@@ -207,7 +225,7 @@ $minStok = 20;
                 <!-- Modal header -->
                 <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                   <h3 class="text-xl font-semibold text-gray-900">
-                    <?= $c ?> Produk Hampir Habis
+                    <?= e($lowStockCount) ?> Produk Hampir Habis
                   </h3>
                   <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="modal-stok">
                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
@@ -225,33 +243,26 @@ $minStok = 20;
                       <h1 class="font-bold basis-1/12 text-center">Stok</h1>
                     </div>
                     <?php
-                    $sql = "SELECT * FROM produk WHERE stok<$minStok";
-                    $result = $conn->query($sql);
-                    $c = 0;
-                    if ($result->num_rows > 0) {
-                      $c = 0;
-                      while ($row = $result->fetch_assoc()) {
-                        $editID = $row['id'];
-                        $c += 1;
+                    $rowNum = 0;
+                    foreach ($lowStockProducts as $row):
+                      $editID = (int)$row['id'];
+                      $rowNum++;
                     ?>
                         <div class="flex w-full mx-auto justify-between items-start">
-                          <p class="basis-1/12 text-center"><?= $c ?></p>
-                          <p class="basis-10/12 text-start"><?= $row['nama_produk'] ?></p>
+                          <p class="basis-1/12 text-center"><?= e($rowNum) ?></p>
+                          <p class="basis-10/12 text-start"><?= e($row['nama_produk']) ?></p>
                           <p class="basis-1/12 text-center flex">
                             <span class="basis-1/2">
-                              <?= $row['stok'] ?>
+                              <?= e($row['stok']) ?>
                             </span>
                             <span class="basis-1/2">
-                              <button data-modal-target="modal-edit-stok-<?= $editID ?>" data-modal-toggle="modal-edit-stok-<?= $editID ?>" data-modal-hide="modal-stok">
+                              <button data-modal-target="modal-edit-stok-<?= e($editID) ?>" data-modal-toggle="modal-edit-stok-<?= e($editID) ?>" data-modal-hide="modal-stok">
                                 <i class="fa-regular fa-pen-to-square"></i>
                               </button>
                             </span>
                           </p>
                         </div>
-                    <?php
-                      }
-                    }
-                    ?>
+                    <?php endforeach; ?>
                   </div>
                 </div>
               </div>
@@ -260,14 +271,20 @@ $minStok = 20;
           <!-- MODAL STOK -->
 
           <?php
-          $outer = "SELECT * FROM produk WHERE stok<$minStok";
-          $resultOuter = $conn->query($outer);
-          if ($resultOuter->num_rows > 0) {
-            while ($rowOuter = $resultOuter->fetch_assoc()) {
+          // Use already-fetched low stock products for edit modals
+          foreach ($lowStockProducts as $rowOuter):
+            $editID = (int)$rowOuter['id'];
+            // Fetch full product data with category
+            $productData = dbFetchOne(
+              "SELECT p.*, k.name as kategori_name FROM produk p JOIN kategori k ON p.category_id = k.id WHERE p.id = ?",
+              'i',
+              [$editID]
+            );
+            $allCategories = dbFetchAll("SELECT id, name FROM kategori");
           ?>
               <!-- MODAL EDIT STOK -->
               <!-- Main modal -->
-              <div id="modal-edit-stok-<?= $rowOuter['id'] ?>" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+              <div id="modal-edit-stok-<?= e($editID) ?>" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
                 <div class="relative p-4 w-full max-w-2xl max-h-full">
                   <!-- Modal content -->
                   <div class="relative bg-white rounded-lg shadow">
@@ -276,7 +293,7 @@ $minStok = 20;
                       <h3 class="text-xl font-semibold text-gray-900">
                         Edit Produk
                       </h3>
-                      <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-target="modal-stok" data-modal-toggle="modal-stok" data-modal-hide="modal-edit-stok-<?= $rowOuter['id'] ?>">
+                      <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-target="modal-stok" data-modal-toggle="modal-stok" data-modal-hide="modal-edit-stok-<?= e($editID) ?>">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
                         </svg>
@@ -286,19 +303,11 @@ $minStok = 20;
                     <!-- Modal body -->
                     <div class="p-4 md:p-5 space-y-4 mx-auto text-gray-900">
                       <div class="flex flex-col w-full">
-                        <?php
-                        $editID = $rowOuter['id'];
-                        $sql = "SELECT * FROM produk p JOIN kategori k ON p.category_id=k.id WHERE p.id=$editID";
-                        $result = $conn->query($sql);
-                        $c = 0;
-                        if ($result->num_rows > 0) {
-                          $c = 0;
-                          while ($row = $result->fetch_assoc()) {
-                            $c += 1;
-                        ?>
+                        <?php if ($productData): ?>
                             <div>
                               <form action="" method="POST" enctype="multipart/form-data" class="flex flex-col w-full mx-auto justify-between items-center">
-                                <input type="hidden" name="stok-edit-id" value="<?= $rowOuter['id'] ?>">
+                                <?= csrfField() ?>
+                                <input type="hidden" name="stok-edit-id" value="<?= e($editID) ?>">
                                 <div class="flex w-full items-center">
                                   <label class="basis-2/12 font-semibold" for="stok-edit-gambar">Gambar</label>
                                   <span class="basis-1/12">:</span>
@@ -307,65 +316,46 @@ $minStok = 20;
                                 <div class="flex w-full items-center mt-2">
                                   <label class="basis-2/12 font-semibold" for="stok-edit-nama">Nama Produk</label>
                                   <span class="basis-1/12">:</span>
-                                  <input required type="text" name="stok-edit-nama" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full" value="<?= $row['nama_produk'] ?>">
+                                  <input required type="text" name="stok-edit-nama" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full" value="<?= e($productData['nama_produk']) ?>">
                                 </div>
                                 <div class="flex w-full items-center mt-2">
                                   <label class="basis-2/12 font-semibold" for="stok-edit-kategori">Kategori</label>
                                   <span class="basis-1/12">:</span>
                                   <select required name="stok-edit-kategori" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full">
                                     <option disabled>Pilih Kategori</option>
-                                    <?php
-                                    $kategori = "SELECT * FROM kategori";
-                                    $resKategori = $conn->query($kategori);
-                                    if ($resKategori->num_rows > 0) {
-                                      while ($rowKategori = $resKategori->fetch_assoc()) {
-                                        if ($row['category_id'] == $rowKategori['id']) {
-                                          $select = "selected";
-                                        } else {
-                                          $select = "";
-                                        }
-                                    ?>
-                                        <option <?= $select ?> value="<?= $rowKategori['id'] ?>"><?= $rowKategori['name'] ?></option>
-                                    <?php
-                                      }
-                                    }
-                                    ?>
+                                    <?php foreach ($allCategories as $cat): ?>
+                                        <option <?= $productData['category_id'] == $cat['id'] ? 'selected' : '' ?> value="<?= e($cat['id']) ?>"><?= e($cat['name']) ?></option>
+                                    <?php endforeach; ?>
                                   </select>
                                 </div>
                                 <div class="flex w-full items-center mt-2">
                                   <label class="basis-2/12 font-semibold" for="stok-edit-stok">Stok</label>
                                   <span class="basis-1/12">:</span>
-                                  <input required type="number" min="0" name="stok-edit-stok" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full" value="<?= $row['stok'] ?>">
+                                  <input required type="number" min="0" name="stok-edit-stok" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full" value="<?= e($productData['stok']) ?>">
                                 </div>
                                 <div class="flex w-full items-center mt-2">
                                   <label class="basis-2/12 font-semibold" for="stok-edit-harga">Harga</label>
                                   <span class="basis-1/12">:</span>
-                                  <input required type="number" name="stok-edit-harga" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full" value="<?= $row['harga'] ?>">
+                                  <input required type="number" name="stok-edit-harga" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full" value="<?= e($productData['harga']) ?>">
                                 </div>
                                 <div class="flex w-full items-center mt-2">
                                   <label class="basis-2/12 font-semibold" for="stok-edit-detail">Detail</label>
                                   <span class="basis-1/12">:</span>
-                                  <textarea required name="stok-edit-detail" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full" cols="30" rows="5"><?= $row['detail'] ?></textarea>
+                                  <textarea required name="stok-edit-detail" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full" cols="30" rows="5"><?= e($productData['detail']) ?></textarea>
                                 </div>
                                 <div class="flex justify-end w-full items-center mt-2">
                                   <button class="border rounded p-2 bg-pawshop-grafik text-white font-semibold" type="submit" name="stok-edit-simpan">SIMPAN</button>
                                 </div>
                               </form>
                             </div>
-                        <?php
-                          }
-                        }
-                        ?>
+                        <?php endif; ?>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
               <!-- MODAL EDIT STOK -->
-          <?php
-            }
-          }
-          ?>
+          <?php endforeach; ?>
 
         </div>
 
@@ -373,23 +363,19 @@ $minStok = 20;
           <div class="flex items-center">
             <h1 class="font-semibold text-lg">TRANSAKSI</h1>
             <?php
-            $sql = "SELECT * FROM transaksi WHERE status_id=1 OR status_id=3";
-            $result = $conn->query($sql);
-            $c = 0;
-            if ($result->num_rows > 0) {
-              while ($row = $result->fetch_assoc()) {
-                $c += 1;
-              }
-            }
+            $pendingTransactions = dbFetchAll(
+              "SELECT t.id, s.name as status_name, t.status_id FROM transaksi t JOIN status s ON t.status_id = s.id WHERE t.status_id IN (1, 3)"
+            );
+            $pendingCount = count($pendingTransactions);
             ?>
-            <span class="flex ml-2 bg-red-600 items-center justify-center rounded-full border w-6 h-6 text-xs"><?= $c ?></span>
+            <span class="flex ml-2 bg-red-600 items-center justify-center rounded-full border w-6 h-6 text-xs"><?= e($pendingCount) ?></span>
           </div>
           <button data-modal-target="modal-transaksi" data-modal-toggle="modal-transaksi" class="font-black text-2xl" type="button">
-            <?= $c ?> Pemberitahuan
+            <?= e($pendingCount) ?> Pemberitahuan
           </button>
 
 
-          <!-- MODAL STOK -->
+          <!-- MODAL TRANSAKSI -->
           <!-- Main modal -->
           <div id="modal-transaksi" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
             <div class="relative p-4 w-full max-w-2xl max-h-full">
@@ -398,7 +384,7 @@ $minStok = 20;
                 <!-- Modal header -->
                 <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
                   <h3 class="text-xl font-semibold text-gray-900">
-                    <?= $c ?> Pemberitahuan
+                    <?= e($pendingCount) ?> Pemberitahuan
                   </h3>
                   <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="modal-transaksi">
                     <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
@@ -416,49 +402,43 @@ $minStok = 20;
                       <h1 class="font-bold basis-8/12 text-center">Status</h1>
                     </div>
                     <?php
-                    $sql = "SELECT t.id, s.name FROM transaksi t JOIN status s ON t.status_id=s.id WHERE status_id=1 OR status_id=3";
-                    $result = $conn->query($sql);
-                    $c = 0;
-                    if ($result->num_rows > 0) {
-                      $c = 0;
-                      while ($row = $result->fetch_assoc()) {
-                        $editID = $row['id'];
-                        $c += 1;
+                    $rowNum = 0;
+                    foreach ($pendingTransactions as $trans):
+                      $transEditID = (int)$trans['id'];
+                      $rowNum++;
                     ?>
                         <div class="flex w-full mx-auto justify-between items-start">
-                          <p class="basis-1/12 text-center"><?= $c ?></p>
-                          <p class="basis-3/12 text-center"><?= $row['id'] ?></p>
+                          <p class="basis-1/12 text-center"><?= e($rowNum) ?></p>
+                          <p class="basis-3/12 text-center"><?= e($trans['id']) ?></p>
                           <p class="basis-8/12 text-center flex">
                             <span class="basis-11/12">
-                              <?= $row['name'] ?>
+                              <?= e($trans['status_name']) ?>
                             </span>
                             <span class="basis-1/12">
-                              <button data-modal-target="modal-edit-transaksi-<?= $editID ?>" data-modal-toggle="modal-edit-transaksi-<?= $editID ?>" data-modal-hide="modal-transaksi">
+                              <button data-modal-target="modal-edit-transaksi-<?= e($transEditID) ?>" data-modal-toggle="modal-edit-transaksi-<?= e($transEditID) ?>" data-modal-hide="modal-transaksi">
                                 <i class="fa-regular fa-pen-to-square"></i>
                               </button>
                             </span>
                           </p>
                         </div>
-                    <?php
-                      }
-                    }
-                    ?>
+                    <?php endforeach; ?>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <!-- MODAL STOK -->
+          <!-- MODAL TRANSAKSI -->
 
           <?php
-          $outer = "SELECT * FROM transaksi WHERE status_id=1 OR status_id=3";
-          $resultOuter = $conn->query($outer);
-          if ($resultOuter->num_rows > 0) {
-            while ($rowOuter = $resultOuter->fetch_assoc()) {
+          // Fetch all statuses once for the edit modals
+          $allStatuses = dbFetchAll("SELECT id, name FROM status");
+          foreach ($pendingTransactions as $transOuter):
+            $transEditID = (int)$transOuter['id'];
+            $transData = dbFetchOne("SELECT * FROM transaksi WHERE id = ?", 's', [$transEditID]);
           ?>
               <!-- MODAL EDIT TRANSAKSI -->
               <!-- Main modal -->
-              <div id="modal-edit-transaksi-<?= $rowOuter['id'] ?>" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+              <div id="modal-edit-transaksi-<?= e($transEditID) ?>" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
                 <div class="relative p-4 w-full max-w-2xl max-h-full">
                   <!-- Modal content -->
                   <div class="relative bg-white rounded-lg shadow">
@@ -467,7 +447,7 @@ $minStok = 20;
                       <h3 class="text-xl font-semibold text-gray-900">
                         Edit Transaksi
                       </h3>
-                      <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-target="modal-transaksi" data-modal-toggle="modal-transaksi" data-modal-hide="modal-edit-transaksi-<?= $rowOuter['id'] ?>">
+                      <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-target="modal-transaksi" data-modal-toggle="modal-transaksi" data-modal-hide="modal-edit-transaksi-<?= e($transEditID) ?>">
                         <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                           <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
                         </svg>
@@ -477,40 +457,19 @@ $minStok = 20;
                     <!-- Modal body -->
                     <div class="p-4 md:p-5 space-y-4 mx-auto text-gray-900">
                       <div class="flex flex-col w-full">
-                        <?php
-                        $editID = $rowOuter['id'];
-                        $sql = "SELECT * FROM transaksi WHERE id='$editID'";
-                        $result = $conn->query($sql);
-                        $c = 0;
-                        if ($result->num_rows > 0) {
-                          $c = 0;
-                          while ($row = $result->fetch_assoc()) {
-                            $c += 1;
-                        ?>
+                        <?php if ($transData): ?>
                             <div>
                               <form action="" method="POST" enctype="multipart/form-data" class="flex flex-col w-full mx-auto justify-between items-center">
-                                <input type="hidden" name="transaksi-edit-id" value="<?= $rowOuter['id'] ?>">
+                                <?= csrfField() ?>
+                                <input type="hidden" name="transaksi-edit-id" value="<?= e($transEditID) ?>">
                                 <div class="flex w-full items-center mt-2">
                                   <label class="basis-2/12 font-semibold" for="transaksi-edit-status">Status</label>
                                   <span class="basis-1/12">:</span>
                                   <select required name="transaksi-edit-status" class="basis-9/12 border border-pawshop-grafik rounded px-2 py-2 w-full">
                                     <option disabled>Pilih Status</option>
-                                    <?php
-                                    $status = "SELECT * FROM status";
-                                    $resStatus = $conn->query($status);
-                                    if ($resStatus->num_rows > 0) {
-                                      while ($rowStatus = $resStatus->fetch_assoc()) {
-                                        if ($row['category_id'] == $rowStatus['id']) {
-                                          $select = "selected";
-                                        } else {
-                                          $select = "";
-                                        }
-                                    ?>
-                                        <option <?= $select ?> value="<?= $rowStatus['id'] ?>"><?= $rowStatus['name'] ?></option>
-                                    <?php
-                                      }
-                                    }
-                                    ?>
+                                    <?php foreach ($allStatuses as $stat): ?>
+                                        <option <?= $transData['status_id'] == $stat['id'] ? 'selected' : '' ?> value="<?= e($stat['id']) ?>"><?= e($stat['name']) ?></option>
+                                    <?php endforeach; ?>
                                   </select>
                                 </div>
                                 <div class="flex justify-end w-full items-center mt-2">
@@ -518,20 +477,14 @@ $minStok = 20;
                                 </div>
                               </form>
                             </div>
-                        <?php
-                          }
-                        }
-                        ?>
+                        <?php endif; ?>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
               <!-- MODAL EDIT TRANSAKSI -->
-          <?php
-            }
-          }
-          ?>
+          <?php endforeach; ?>
 
         </div>
       </div>
@@ -544,26 +497,36 @@ $minStok = 20;
         </div>
         <?php
         $colors = array("pawshop-gatau", "pawshop-stok", "pawshop-yellow-darker", "pawshop-maurin-pink");
-        $c = 0;
-        $sql = "SELECT k.name, SUM(p.stok) AS total_stok, COALESCE(total_sold, 0) AS total_sold FROM produk p JOIN kategori k ON p.category_id = k.id LEFT JOIN ( SELECT k.id AS category_id, SUM(quantity) AS total_sold FROM transaksi_detail trd JOIN produk p ON trd.product_id = p.id JOIN kategori k ON p.category_id = k.id GROUP BY k.id ) sold_totals ON k.id = sold_totals.category_id GROUP BY k.id";
-        $result = $conn->query($sql);
-        if ($result->num_rows > 0) {
-          while ($row = $result->fetch_assoc()) {
-            $persentase = $row['total_sold'] / ($row['total_stok'] + $row['total_sold']) * 100;
+        $colorIndex = 0;
+        $salesData = dbFetchAll(
+          "SELECT k.name, SUM(p.stok) AS total_stok, COALESCE(total_sold, 0) AS total_sold
+           FROM produk p
+           JOIN kategori k ON p.category_id = k.id
+           LEFT JOIN (
+             SELECT k.id AS category_id, SUM(quantity) AS total_sold
+             FROM transaksi_detail trd
+             JOIN produk p ON trd.product_id = p.id
+             JOIN kategori k ON p.category_id = k.id
+             GROUP BY k.id
+           ) sold_totals ON k.id = sold_totals.category_id
+           GROUP BY k.id"
+        );
+        foreach ($salesData as $row):
+          $totalAvailable = $row['total_stok'] + $row['total_sold'];
+          $persentase = $totalAvailable > 0 ? ($row['total_sold'] / $totalAvailable * 100) : 0;
         ?>
             <div>
-              <h1><?= $row['name'] ?></h1>
+              <h1><?= e($row['name']) ?></h1>
               <div class="w-full bg-white rounded-full">
-                <div class="bg-<?= $colors[$c] ?> text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full" style="width: <?= $persentase ?>%">
-                  <?= number_format($persentase) ?>%
+                <div class="bg-<?= e($colors[$colorIndex % count($colors)]) ?> text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full" style="width: <?= e(number_format($persentase, 0)) ?>%">
+                  <?= e(number_format($persentase)) ?>%
                 </div>
               </div>
-              <h1><?= $row['total_sold'] ?> dari <?= $row['total_stok'] + $row['total_sold'] ?></h1>
+              <h1><?= e($row['total_sold']) ?> dari <?= e($totalAvailable) ?></h1>
             </div>
         <?php
-            $c++;
-          }
-        }
+          $colorIndex++;
+        endforeach;
         ?>
       </div>
       <!-- GRAFIK -->

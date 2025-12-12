@@ -1,129 +1,122 @@
 <?php
 include 'config.php';
 
-if ($privilege != 'admin') {
-    header('Location: index.php');
-}
+// Require admin access
+requireAdmin();
 
 $status = '';
 $file = '';
-$kategori_status = '';
 
-if (isset($_POST['submit'])) {
-    // ADD DATA
-    if (isset($_FILES) && isset($_POST['product_name']) && isset($_POST['stok']) && isset($_POST['harga']) && isset($_POST['detail'])) {
-        // AMBIL DATA DARI FORM
-        $gambar = basename($_FILES["gambar"]["name"]);
-        $product_name = $_POST['product_name'];
-        $category_id = $_POST['category_id'];
-        $stok = $_POST['stok'];
-        $harga = $_POST['harga'];
-        $detail = $_POST['detail'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Validate CSRF token
+    if (!csrfValidate()) {
+        $status = '<div class="mt-3 alert alert-danger" role="alert">Sesi tidak valid. Silakan coba lagi.</div>';
+    } else {
+        // ADD DATA
+        if (isset($_POST['submit']) && isset($_POST['product_name']) && !isset($_POST['id']) && !isset($_POST['delete_product_name'])) {
+            $product_name = post('product_name');
+            $category_id = postPositiveInt('category_id');
+            $stok = postPositiveInt('stok');
+            $harga = postPositiveInt('harga');
+            $detail = post('detail');
 
-        // UPDATE DATABASE
-        if ($gambar == "") {
-            $sql = "INSERT INTO produk (gambar, nama_produk, category_id, stok, harga, detail) VALUES ('x.jpg', '$product_name', $category_id, $stok, $harga, '$detail')";
-        } else {
-            $sql = "INSERT INTO produk (gambar, nama_produk, category_id, stok, harga, detail) VALUES ('$gambar', '$product_name', $category_id, $stok, $harga, '$detail')";
+            if (!empty($product_name) && $category_id > 0) {
+                $gambar = 'x.jpg'; // default
 
-            // AMBIL DATA GAMBAR
-            $target_dir = "./img/";
-            $target_file = $target_dir . basename($_FILES["gambar"]["name"]);
-            $uploadOk = 1;
-            $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
+                // Handle file upload if present
+                if (isset($_FILES['gambar']) && $_FILES['gambar']['name'] != '') {
+                    $errors = validateImageUpload($_FILES['gambar']);
+                    if (empty($errors)) {
+                        $newFilename = generateSafeFilename($_FILES['gambar']['name']);
+                        $targetPath = UPLOAD_DIR . $newFilename;
+                        if (move_uploaded_file($_FILES['gambar']['tmp_name'], $targetPath)) {
+                            $gambar = $newFilename;
+                            $file = '<div class="mt-3 alert alert-success" role="alert">File upload berhasil!</div>';
+                        } else {
+                            $file = '<div class="mt-3 alert alert-danger" role="alert">File upload gagal!</div>';
+                        }
+                    } else {
+                        $file = '<div class="mt-3 alert alert-danger" role="alert">' . e(implode(', ', $errors)) . '</div>';
+                    }
+                }
 
-            $check = getimagesize($_FILES["gambar"]["tmp_name"]);
-            if ($check !== false) {
-                $file = '<div class="mt-3 alert alert-success" role="alert">File adalah gambar!</div>';
-                $uploadOk = 1;
-            } else {
-                // echo "File is not an image.";
-                $file = '<div class="mt-3 alert alert-danger" role="alert">File bukan gambar!</div>';
-                $uploadOk = 0;
-            }
-            if ($uploadOk == 0) {
-                // if everything is ok, try to upload file
-            } else {
-                if (move_uploaded_file($_FILES["gambar"]["tmp_name"], $target_file)) {
-                    // FINAL UPLOAD FILE SETELAH CHECK MACEM2
-                    $file = '<div class="mt-3 alert alert-success" role="alert">File upload berhasil!</div>';
+                $result = dbQuery(
+                    "INSERT INTO produk (gambar, nama_produk, category_id, stok, harga, detail) VALUES (?, ?, ?, ?, ?, ?)",
+                    'ssiiss',
+                    [$gambar, $product_name, $category_id, $stok, $harga, $detail]
+                );
+
+                if ($result) {
+                    $status = '<div class="mt-3 alert alert-success" role="alert">Produk berhasil ditambahkan!</div>';
                 } else {
-                    $file = '<div class="mt-3 alert alert-danger" role="alert">File upload gagal!</div>';
+                    $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menambahkan produk!</div>';
                 }
             }
         }
 
-        if (mysqli_query($conn, $sql)) {
-            $status = '<div class="mt-3 alert alert-success" role="alert">Produk berhasil ditambahkan!</div>';
-        } else {
-            $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menambahkan produk!</div>';
-        }
-    }
+        // EDIT DATA
+        if (isset($_POST['submit']) && isset($_POST['id']) && isset($_POST['edit_product_name'])) {
+            $id = postPositiveInt('id');
+            $edit_product_name = post('edit_product_name');
+            $edit_category_id = postPositiveInt('edit_category_id');
+            $edit_stok = postPositiveInt('edit_stok');
+            $edit_harga = postPositiveInt('edit_harga');
+            $edit_detail = post('edit_detail');
 
-    // EDIT DATA
-    if (isset($_POST['id']) && isset($_POST['edit_product_name']) && isset($_POST['edit_category_id']) && isset($_POST['edit_stok']) && isset($_POST['edit_harga']) && isset($_POST['edit_detail'])) {
-        // AMBIL DATA DARI FORM
-        $id = $_POST['id'];
-        $edit_gambar = basename($_FILES["edit_gambar"]["name"]);
-        $edit_product_name = $_POST['edit_product_name'];
-        $edit_category_id = $_POST['edit_category_id'];
-        $edit_stok = $_POST['edit_stok'];
-        $edit_harga = $_POST['edit_harga'];
-        $edit_detail = $_POST['edit_detail'];
-
-        // UPDATE DATABASE
-        if ($edit_gambar == "") {
-            $sql = "UPDATE produk SET nama_produk='$edit_product_name', category_id='$edit_category_id', stok='$edit_stok', harga='$edit_harga', detail='$edit_detail' WHERE id=$id";
-        } else {
-            $sql = "UPDATE produk SET gambar='$edit_gambar', nama_produk='$edit_product_name', category_id='$edit_category_id', stok='$edit_stok', harga='$edit_harga', detail='$edit_detail' WHERE id=$id";
-
-            // AMBIL DATA GAMBAR
-            $target_dir = "./img/";
-            $target_file = $target_dir . basename($_FILES["edit_gambar"]["name"]);
-            $uploadOk = 1;
-            $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
-
-            $check = getimagesize($_FILES["edit_gambar"]["tmp_name"]);
-            if ($check !== false) {
-                $file = '<div class="mt-3 alert alert-success" role="alert">File adalah gambar!</div>';
-                $uploadOk = 1;
-            } else {
-                // echo "File is not an image.";
-                $file = '<div class="mt-3 alert alert-danger" role="alert">File bukan gambar!</div>';
-                $uploadOk = 0;
-            }
-            if ($uploadOk == 0) {
-                // if everything is ok, try to upload file
-            } else {
-                if (move_uploaded_file($_FILES["edit_gambar"]["tmp_name"], $target_file)) {
-                    // FINAL UPLOAD FILE SETELAH CHECK MACEM2
-                    $file = '<div class="mt-3 alert alert-success" role="alert">File upload berhasil!</div>';
+            if ($id > 0 && !empty($edit_product_name) && $edit_category_id > 0) {
+                // Handle file upload if present
+                if (isset($_FILES['edit_gambar']) && $_FILES['edit_gambar']['name'] != '') {
+                    $errors = validateImageUpload($_FILES['edit_gambar']);
+                    if (empty($errors)) {
+                        $newFilename = generateSafeFilename($_FILES['edit_gambar']['name']);
+                        $targetPath = UPLOAD_DIR . $newFilename;
+                        if (move_uploaded_file($_FILES['edit_gambar']['tmp_name'], $targetPath)) {
+                            dbQuery(
+                                "UPDATE produk SET gambar = ?, nama_produk = ?, category_id = ?, stok = ?, harga = ?, detail = ? WHERE id = ?",
+                                'ssiiisi',
+                                [$newFilename, $edit_product_name, $edit_category_id, $edit_stok, $edit_harga, $edit_detail, $id]
+                            );
+                            $file = '<div class="mt-3 alert alert-success" role="alert">File upload berhasil!</div>';
+                            $status = '<div class="mt-3 alert alert-success" role="alert">Produk berhasil diubah!</div>';
+                        } else {
+                            $file = '<div class="mt-3 alert alert-danger" role="alert">File upload gagal!</div>';
+                        }
+                    } else {
+                        $file = '<div class="mt-3 alert alert-danger" role="alert">' . e(implode(', ', $errors)) . '</div>';
+                    }
                 } else {
-                    $file = '<div class="mt-3 alert alert-danger" role="alert">File upload gagal!</div>';
+                    // Update without changing image
+                    $result = dbQuery(
+                        "UPDATE produk SET nama_produk = ?, category_id = ?, stok = ?, harga = ?, detail = ? WHERE id = ?",
+                        'siiisi',
+                        [$edit_product_name, $edit_category_id, $edit_stok, $edit_harga, $edit_detail, $id]
+                    );
+                    if ($result) {
+                        $status = '<div class="mt-3 alert alert-success" role="alert">Produk berhasil diubah!</div>';
+                    } else {
+                        $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengubah produk!</div>';
+                    }
                 }
             }
         }
 
-        if (mysqli_query($conn, $sql)) {
-            $status = '<div class="mt-3 alert alert-success" role="alert">Produk berhasil diubah!</div>';
-        } else {
-            $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengubah produk!</div>';
-        }
-    }
-
-    // DELETE DATA
-    if (isset($_POST['delete_product_name']) && $_POST['delete_product_name'] != null) {
-        $id = $_POST['id'];
-        $sql = "DELETE FROM produk WHERE id=$id";
-        $status = "";
-        if (mysqli_query($conn, $sql)) {
-            $status = '<div class="mt-3 alert alert-success" role="alert">Produk berhasil dihapus!</div>';
-        } else {
-            $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menghapus produk!</div>';
+        // DELETE DATA
+        if (isset($_POST['submit']) && isset($_POST['delete_product_name']) && !empty($_POST['delete_product_name'])) {
+            $id = postPositiveInt('id');
+            if ($id > 0) {
+                $result = dbQuery("DELETE FROM produk WHERE id = ?", 'i', [$id]);
+                if ($result) {
+                    $status = '<div class="mt-3 alert alert-success" role="alert">Produk berhasil dihapus!</div>';
+                } else {
+                    $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menghapus produk!</div>';
+                }
+            }
         }
     }
 }
 
+// Fetch categories once for dropdowns
+$categories = dbFetchAll("SELECT id, name FROM kategori");
 ?>
 <!doctype html>
 <html lang="en">
@@ -135,8 +128,8 @@ if (isset($_POST['submit'])) {
     <link rel="icon" type="image/x-icon" href="./logo-title.png">
     <link href="./css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" href="./css/datatables.min.css">
-    <script src="./js/datatables.min.js"></script>
     <script src="./js/jquery-3.7.1.min.js"></script>
+    <script src="./js/datatables.min.js"></script>
     <script src="https://kit.fontawesome.com/ec712a3d01.js" crossorigin="anonymous"></script>
 </head>
 
@@ -167,22 +160,15 @@ if (isset($_POST['submit'])) {
                     <li class="nav-item">
                         <a class="nav-link" href="./admin-users.php">Users</a>
                     </li>
-                    <?php
-                    if (isset($_SESSION['userid']) && $_SESSION['userid'] != null) {
-                    ?>
-
+                    <?php if (isLoggedIn()): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="./logout.php">Logout</a>
                         </li>
-                    <?php
-                    } else {
-                    ?>
+                    <?php else: ?>
                         <li class="nav-item">
                             <a class="nav-link" href="./login.php">Login</a>
                         </li>
-                    <?php
-                    }
-                    ?>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
@@ -206,6 +192,7 @@ if (isset($_POST['submit'])) {
                     </div>
                     <div class="modal-body">
                         <form action="" method="POST" enctype="multipart/form-data" autocomplete="off">
+                            <?= csrfField() ?>
                             <input class="form-control" type="file" name="gambar">
                             <div class="form-floating">
                                 <input class="mt-2 form-control" type="text" name="product_name" placeholder="Nama Produk" required>
@@ -214,17 +201,9 @@ if (isset($_POST['submit'])) {
                             <div class="form-floating">
                                 <select class="mt-2 form-select" name="category_id" required>
                                     <option value="" disabled selected>Pilih kategori</option>
-                                    <?php
-                                    $sql = 'SELECT * FROM kategori';
-                                    $res = mysqli_query($conn, $sql);
-                                    if (mysqli_num_rows($res) > 0) {
-                                        while ($row = mysqli_fetch_assoc($res)) {
-                                    ?>
-                                            <option value="<?= $row['id'] ?>"><?= $row['name'] ?></option>
-                                    <?php
-                                        }
-                                    }
-                                    ?>
+                                    <?php foreach ($categories as $cat): ?>
+                                        <option value="<?= e($cat['id']) ?>"><?= e($cat['name']) ?></option>
+                                    <?php endforeach; ?>
                                 </select>
                                 <label for="category_id">Kategori</label>
                             </div>
@@ -241,7 +220,7 @@ if (isset($_POST['submit'])) {
                                 <label for="detail" class="form-label">Detail Produk</label>
                             </div>
                             <div class="d-flex justify-content-end">
-                                <input type="submit" name="submit" class="mt-2 btn btn-primary"></input>
+                                <input type="submit" name="submit" class="mt-2 btn btn-primary">
                             </div>
                         </form>
                     </div>
@@ -261,6 +240,7 @@ if (isset($_POST['submit'])) {
                     </div>
                     <div class="modal-body">
                         <form action="" method="POST" enctype="multipart/form-data" autocomplete="off">
+                            <?= csrfField() ?>
                             <input class="form-control" type="file" name="edit_gambar">
                             <input type="hidden" name="id">
                             <div class="form-floating">
@@ -270,17 +250,9 @@ if (isset($_POST['submit'])) {
                             <div class="form-floating">
                                 <select class="mt-2 form-select" name="edit_category_id" required>
                                     <option value="" disabled selected>Pilih kategori</option>
-                                    <?php
-                                    $sql = 'SELECT * FROM kategori';
-                                    $res = mysqli_query($conn, $sql);
-                                    if (mysqli_num_rows($res) > 0) {
-                                        while ($row = mysqli_fetch_assoc($res)) {
-                                    ?>
-                                            <option value="<?= $row['id'] ?>"><?= $row['name'] ?></option>
-                                    <?php
-                                        }
-                                    }
-                                    ?>
+                                    <?php foreach ($categories as $cat): ?>
+                                        <option value="<?= e($cat['id']) ?>"><?= e($cat['name']) ?></option>
+                                    <?php endforeach; ?>
                                 </select>
                                 <label for="edit_category_id">Kategori</label>
                             </div>
@@ -297,7 +269,7 @@ if (isset($_POST['submit'])) {
                                 <label for="edit_detail" class="form-label">Detail Produk</label>
                             </div>
                             <div class="d-flex justify-content-end">
-                                <input type="submit" name="submit" class="mt-2 btn btn-primary"></input>
+                                <input type="submit" name="submit" class="mt-2 btn btn-primary">
                             </div>
                         </form>
                     </div>
@@ -316,9 +288,10 @@ if (isset($_POST['submit'])) {
                     </div>
                     <div class="modal-body">
                         <form class="d-flex justify-content-between" action="" method="POST">
+                            <?= csrfField() ?>
                             <input type="hidden" name="id" value="">
                             <input type="hidden" name="delete_product_name">
-                            <input type="submit" name="submit" value="Yes" class="mt-2 btn btn-danger"></input>
+                            <input type="submit" name="submit" value="Yes" class="mt-2 btn btn-danger">
                             <button data-bs-dismiss="modal" class="mt-2 btn btn-primary">No</button>
                         </form>
                     </div>
@@ -344,28 +317,22 @@ if (isset($_POST['submit'])) {
                 </thead>
                 <tbody>
                     <?php
-                    $fetch = "SELECT p.id, p.gambar, p.nama_produk, c.name, p.stok, p.harga, p.detail FROM produk p JOIN kategori c ON p.category_id=c.id";
-                    $res = mysqli_query($conn, $fetch);
-
-                    if (mysqli_num_rows($res) > 0) {
-                        while ($row = mysqli_fetch_assoc($res)) {
+                    $products = dbFetchAll("SELECT p.id, p.gambar, p.nama_produk, c.name, p.stok, p.harga, p.detail FROM produk p JOIN kategori c ON p.category_id = c.id");
+                    foreach ($products as $row):
                     ?>
-                            <tr>
-                                <td>
-                                    <button class="btn" data-bs-toggle="modal" data-id="<?= $row['id']; ?>" data-bs-target="#editProduct"><i class="fa-solid fa-edit"></i></button>
-                                    <button class="btn" data-bs-toggle="modal" data-id="<?= $row['id']; ?>" data-bs-target="#deleteProduct"><i class="fa-solid fa-trash"></i></button>
-                                </td>
-                                <td><?= $row['gambar']; ?></td>
-                                <td><?= $row['nama_produk']; ?></td>
-                                <td><?= $row['name']; ?></td>
-                                <td><?= $row['stok']; ?></td>
-                                <td>Rp <?= number_format($row['harga']); ?></td>
-                                <td><?= $row['detail']; ?></td>
-                            </tr>
-                    <?php
-                        }
-                    }
-                    ?>
+                        <tr>
+                            <td>
+                                <button class="btn" data-bs-toggle="modal" data-id="<?= e($row['id']); ?>" data-bs-target="#editProduct"><i class="fa-solid fa-edit"></i></button>
+                                <button class="btn" data-bs-toggle="modal" data-id="<?= e($row['id']); ?>" data-bs-target="#deleteProduct"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                            <td><?= e($row['gambar']); ?></td>
+                            <td><?= e($row['nama_produk']); ?></td>
+                            <td><?= e($row['name']); ?></td>
+                            <td><?= e($row['stok']); ?></td>
+                            <td>Rp <?= e(number_format($row['harga'])); ?></td>
+                            <td><?= e($row['detail']); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
 
                 </tbody>
                 <tfoot>
@@ -424,14 +391,11 @@ if (isset($_POST['submit'])) {
                         $('#editProduct input[name="edit_stok"]').val(data.stok);
                         $('#editProduct input[name="edit_harga"]').val(data.harga);
                         $('#editProduct textarea[name="edit_detail"]').val(data.detail);
-                        // You can update other modal fields as needed
                     } else {
-                        // Handle errors
                         console.log('Error fetching product:', data.error);
                     }
                 },
                 error: function(xhr, status, error) {
-                    // Handle AJAX errors
                     console.error('AJAX error:', status, error);
                 }
             });
@@ -453,19 +417,14 @@ if (isset($_POST['submit'])) {
                 success: function(data) {
                     // Update the modal content with the fetched data
                     if (!data.error) {
-                        // Set the text of the paragraph element in the modal header
                         $('#deleteProduct .modal-header p').text('Apakah anda yakin ingin menghapus ' + data.nama_produk + '?');
-
                         $('#deleteProduct input[name="id"]').val(data.id);
                         $('#deleteProduct input[name="delete_product_name"]').val(data.nama_produk);
-                        // You can update other modal fields as needed
                     } else {
-                        // Handle errors
                         console.log('Error fetching product:', data.error);
                     }
                 },
                 error: function(xhr, status, error) {
-                    // Handle AJAX errors
                     console.error('AJAX error:', status, error);
                 }
             });

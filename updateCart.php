@@ -1,25 +1,41 @@
 <?php
-session_start();
+include 'config.php';
 
-if (!isset($_SESSION['userid'])) {
-  header('Location: index.php');
-}
+// Require login
+requireLogin();
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  if (isset($_POST['product_id']) && isset($_POST['quantity'])) {
-    $product_id = $_POST['product_id'];
-    $quantity = $_POST['quantity'];
-
-    // Update quantity in the cart
-    foreach ($_SESSION['cart'] as &$item) {
-      if ($item['id'] == $product_id) {
-        $item['quantity'] = $quantity;
-        break;
-      }
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Validate CSRF token
+    if (!csrfValidate()) {
+        header("Location: " . ($_SERVER['HTTP_REFERER'] ?? 'index.php'));
+        exit;
     }
 
-    // Redirect back to the cart page
-    header("Location: " . $_SERVER['HTTP_REFERER']);
-    exit();
-  }
+    $product_id = postPositiveInt('product_id');
+    $quantity = postPositiveInt('quantity', 1);
+
+    if ($product_id > 0 && $quantity > 0 && isset($_SESSION['cart'])) {
+        // Verify stock availability
+        $product = dbFetchOne(
+            "SELECT stok FROM produk WHERE id = ?",
+            'i',
+            [$product_id]
+        );
+
+        $maxStock = $product['stok'] ?? 1;
+
+        foreach ($_SESSION['cart'] as &$item) {
+            if ($item['id'] == $product_id) {
+                $item['quantity'] = min($quantity, $maxStock);
+                break;
+            }
+        }
+        unset($item);
+    }
+
+    header("Location: " . ($_SERVER['HTTP_REFERER'] ?? 'index.php'));
+    exit;
 }
+
+header("Location: index.php");
+exit;

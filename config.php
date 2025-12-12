@@ -1,34 +1,73 @@
 <?php
+/**
+ * Main configuration file
+ * This is the new secure config that replaces the old config.php
+ */
 
-// LOCAL
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "pawshop";
-
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
-
-$conn->autocommit(TRUE);
-
+// Set timezone
 date_default_timezone_set("Asia/Jakarta");
 
-$privilege = '';
-$userid = '';
-session_start();
-if (
-    isset($_COOKIE['remember-me']) && $_COOKIE['remember-me'] != '' &&
-    isset($_COOKIE['userid']) && $_COOKIE['remember-me'] != '' &&
-    isset($_COOKIE['privilege']) && $_COOKIE['remember-me'] != ''
-) {
-    $userid = $_COOKIE['userid'];
-    $privilege = $_COOKIE['privilege'];
-} else if (isset($_SESSION['userid']) && $_SESSION['userid'] != '' && isset($_SESSION['privilege']) && $_SESSION['privilege'] != '') {
-    $userid = $_SESSION['userid'];
-    $privilege = $_SESSION['privilege'];
+// Include security infrastructure
+require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/security.php';
+require_once __DIR__ . '/includes/csrf.php';
+require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/validation.php';
+
+// Initialize session securely
+initSession();
+
+// Set security headers
+setSecurityHeaders();
+
+// Get database connection (for backward compatibility with existing code)
+$conn = getDB();
+
+// Get current user info (for backward compatibility)
+$userid = getCurrentUserId();
+$privilege = getCurrentUserPrivilege();
+
+// Constants
+define('MIN_STOCK_ALERT', 20);
+define('UPLOAD_DIR', __DIR__ . '/img/');
+define('MAX_UPLOAD_SIZE', 5 * 1024 * 1024); // 5MB
+
+/**
+ * Admin secret key for registration
+ *
+ * SECURITY: This MUST be set via environment variable, not hardcoded.
+ * Generate a secure random key (min 32 chars) using:
+ *   php -r "echo bin2hex(random_bytes(32));"
+ *
+ * Set it in your environment:
+ *   - Apache: SetEnv PAWSHOP_ADMIN_SECRET "your-secret-key"
+ *   - Nginx/PHP-FPM: env[PAWSHOP_ADMIN_SECRET] = "your-secret-key"
+ *   - .env file (excluded from VCS): PAWSHOP_ADMIN_SECRET=your-secret-key
+ *   - System environment: export PAWSHOP_ADMIN_SECRET="your-secret-key"
+ *
+ * NEVER commit the actual secret to version control.
+ */
+$adminSecretKey = getenv('PAWSHOP_ADMIN_SECRET');
+if ($adminSecretKey === false || $adminSecretKey === '') {
+    $adminSecretKey = $_ENV['PAWSHOP_ADMIN_SECRET'] ?? '';
 }
+
+if (empty($adminSecretKey)) {
+    error_log('CRITICAL: PAWSHOP_ADMIN_SECRET environment variable is not set');
+    if (php_sapi_name() !== 'cli') {
+        http_response_code(500);
+        die('Server configuration error. Please contact administrator.');
+    }
+}
+
+// Validate minimum entropy (at least 32 characters for sufficient security)
+if (strlen($adminSecretKey) < 32) {
+    error_log('CRITICAL: PAWSHOP_ADMIN_SECRET is too short (min 32 chars required)');
+    if (php_sapi_name() !== 'cli') {
+        http_response_code(500);
+        die('Server configuration error. Please contact administrator.');
+    }
+}
+
+define('ADMIN_SECRET_KEY', $adminSecretKey);
+unset($adminSecretKey); // Clear from memory

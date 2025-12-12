@@ -1,9 +1,8 @@
 <?php
 include 'config.php';
 
-if (!isset($userid)) {
-  header('Location: login.php');
-}
+// Require admin access
+requireAdmin();
 
 ?>
 <!DOCTYPE html>
@@ -43,7 +42,7 @@ if (!isset($userid)) {
       font-family: "Montserrat", sans-serif;
     }
   </style>
-  <title>Pawshop | Dasbor</title>
+  <title>Pawshop | Laporan</title>
 </head>
 
 <body class="bg-pawshop-background">
@@ -109,13 +108,14 @@ if (!isset($userid)) {
         <div class="bg-pawshop-pemasukan rounded-lg text-white w-full px-16 py-8">
           <h1 class="font-bold text-lg">TRANSAKSI</h1>
           <form class="flex flex-col" action="generate.php" method="POST">
+            <?= csrfField() ?>
             <div class="flex justify-between items-center">
               <label class="basis-6/12">Tanggal Awal</label>
-              <input class="basis-6/12 text-black" type="date" name="tanggal-awal" id="">
+              <input class="basis-6/12 text-black" type="date" name="tanggal-awal" required>
             </div>
             <div class="mt-2 flex justify-between">
               <label class="basis-6/12">Tanggal Akhir</label>
-              <input class="basis-6/12 text-black" type="date" name="tanggal-akhir" id="">
+              <input class="basis-6/12 text-black" type="date" name="tanggal-akhir" required>
             </div>
             <button class="mt-2 bg-red-500 rounded-lg shadow hover:bg-white hover:text-red-500 hover:shadow" type="submit" name="generate-transaksi">Generate</button>
           </form>
@@ -126,6 +126,7 @@ if (!isset($userid)) {
             <h1 class="font-bold text-lg">PRODUK</h1>
           </div>
           <form action="generate.php" class="flex justify-center items-center m-auto" method="POST">
+            <?= csrfField() ?>
             <button class="mt-2 p-6 bg-red-500 rounded-lg shadow hover:bg-white hover:text-red-500 hover:shadow" type="submit" name="generate-produk">Generate</button>
           </form>
         </div>
@@ -135,6 +136,7 @@ if (!isset($userid)) {
             <h1 class="font-bold text-lg">USER</h1>
           </div>
           <form action="generate.php" class="flex justify-center items-center m-auto" method="POST">
+            <?= csrfField() ?>
             <button class="mt-2 p-6 bg-red-500 rounded-lg shadow hover:bg-white hover:text-red-500 hover:shadow" type="submit" name="generate-user">Generate</button>
           </form>
         </div>

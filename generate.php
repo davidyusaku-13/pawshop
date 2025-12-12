@@ -1,8 +1,13 @@
 <?php
 include 'config.php';
 
-if (!isset($userid)) {
-  header('Location: login.php');
+// Require admin access
+requireAdmin();
+
+// Validate CSRF for all POST requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !csrfValidate()) {
+    header('Location: admin-report.php');
+    exit;
 }
 
 ?>
@@ -22,19 +27,30 @@ if (!isset($userid)) {
   <div class="container mt-3">
     <?php
     if (isset($_POST['generate-transaksi'])) {
-      if ($_POST['tanggal-awal'] == '' || $_POST['tanggal-akhir'] == '') {
+      $tanggalAwalRaw = post('tanggal-awal');
+      $tanggalAkhirRaw = post('tanggal-akhir');
+
+      if (empty($tanggalAwalRaw) || empty($tanggalAkhirRaw)) {
         header('Location: admin-report.php');
-      } else {
-        $tanggalAwal = $_POST['tanggal-awal'];
-        $tanggalAkhir = $_POST['tanggal-akhir'];
-        $tglawl = new DateTime($tanggalAwal);
-        $tglakhr = new DateTime($tanggalAkhir);
-        $tanggalAwal = $tglawl->format("d-m-Y");
-        $tanggalAkhir = $tglakhr->format("d-m-Y");
+        exit;
       }
+
+      // Validate date format
+      $tglawl = DateTime::createFromFormat('Y-m-d', $tanggalAwalRaw);
+      $tglakhr = DateTime::createFromFormat('Y-m-d', $tanggalAkhirRaw);
+
+      if (!$tglawl || !$tglakhr) {
+        header('Location: admin-report.php');
+        exit;
+      }
+
+      $tanggalAwal = $tglawl->format("d-m-Y");
+      $tanggalAkhir = $tglakhr->format("d-m-Y");
+      $tanggalAwalDb = $tglawl->format("Y-m-d");
+      $tanggalAkhirDb = $tglakhr->format("Y-m-d");
     ?>
       <h1 class="text-center">Tabel Transaksi</h1>
-      <p class="text-center"><?= $tanggalAwal ?> s/d <?= $tanggalAkhir ?></p>
+      <p class="text-center"><?= e($tanggalAwal) ?> s/d <?= e($tanggalAkhir) ?></p>
       <div class="table-responsive text-center">
         <table class="table table-borderless">
           <thead>
@@ -49,27 +65,31 @@ if (!isset($userid)) {
           </thead>
           <tbody>
             <?php
-            $sql = "SELECT t.id, t.timestamp, u.username, t.total_amount, t.payment_method, s.name FROM transaksi t JOIN users u ON t.user_id=u.id JOIN status s ON t.status_id=s.id WHERE timestamp>'$tanggalAwal' AND timestamp<'$tanggalAkhir'";
-            $result = $conn->query($sql);
-            if ($result->num_rows > 0) {
-              while ($row = $result->fetch_assoc()) {
+            $transactions = dbFetchAll(
+              "SELECT t.id, t.timestamp, u.username, t.total_amount, t.payment_method, s.name
+               FROM transaksi t
+               JOIN users u ON t.user_id = u.id
+               JOIN status s ON t.status_id = s.id
+               WHERE DATE(t.timestamp) >= ? AND DATE(t.timestamp) <= ?
+               ORDER BY t.timestamp DESC",
+              'ss',
+              [$tanggalAwalDb, $tanggalAkhirDb]
+            );
+            foreach ($transactions as $row):
             ?>
                 <tr>
-                  <td><?= $row['id'] ?></td>
-                  <td><?= $row['timestamp'] ?></td>
-                  <td><?= $row['username'] ?></td>
-                  <td><?= $row['total_amount'] ?></td>
-                  <td><?= $row['payment_method'] ?></td>
-                  <td><?= $row['name'] ?></td>
+                  <td><?= e($row['id']) ?></td>
+                  <td><?= e($row['timestamp']) ?></td>
+                  <td><?= e($row['username']) ?></td>
+                  <td>Rp <?= e(number_format($row['total_amount'])) ?></td>
+                  <td><?= e($row['payment_method']) ?></td>
+                  <td><?= e($row['name']) ?></td>
                 </tr>
-            <?php
-              }
-            }
-            ?>
+            <?php endforeach; ?>
           </tbody>
         </table>
         <div class="text-center">
-          <a href="download.php?tanggal-awal=<?= $tanggalAwal ?>&tanggal-akhir=<?= $tanggalAkhir ?>" class="btn btn-primary">Download</a>
+          <a href="download.php?type=transaksi&tanggal-awal=<?= e(urlencode($tanggalAwalDb)) ?>&tanggal-akhir=<?= e(urlencode($tanggalAkhirDb)) ?>&token=<?= e(csrfToken()) ?>" class="btn btn-primary">Download</a>
         </div>
       </div>
     <?php
@@ -91,28 +111,27 @@ if (!isset($userid)) {
           </thead>
           <tbody>
             <?php
-            $sql = "SELECT p.id, p.gambar, p.nama_produk, k.name, p.stok, p.harga, p.detail FROM produk p JOIN kategori k ON p.category_id=k.id";
-            $result = $conn->query($sql);
-            if ($result->num_rows > 0) {
-              while ($row = $result->fetch_assoc()) {
+            $products = dbFetchAll(
+              "SELECT p.id, p.gambar, p.nama_produk, k.name, p.stok, p.harga, p.detail
+               FROM produk p
+               JOIN kategori k ON p.category_id = k.id"
+            );
+            foreach ($products as $row):
             ?>
                 <tr>
-                  <td><?= $row['id'] ?></td>
-                  <td><?= $row['gambar'] ?></td>
-                  <td><?= $row['nama_produk'] ?></td>
-                  <td><?= $row['name'] ?></td>
-                  <td><?= $row['stok'] ?></td>
-                  <td><?= $row['harga'] ?></td>
-                  <td><?= $row['detail'] ?></td>
+                  <td><?= e($row['id']) ?></td>
+                  <td><?= e($row['gambar']) ?></td>
+                  <td><?= e($row['nama_produk']) ?></td>
+                  <td><?= e($row['name']) ?></td>
+                  <td><?= e($row['stok']) ?></td>
+                  <td>Rp <?= e(number_format($row['harga'])) ?></td>
+                  <td><?= e($row['detail']) ?></td>
                 </tr>
-            <?php
-              }
-            }
-            ?>
+            <?php endforeach; ?>
           </tbody>
         </table>
         <div class="text-center">
-          <a href="download.php?download-produk" class="btn btn-primary">Download</a>
+          <a href="download.php?type=produk&token=<?= e(csrfToken()) ?>" class="btn btn-primary">Download</a>
         </div>
       </div>
     <?php
@@ -125,38 +144,33 @@ if (!isset($userid)) {
             <tr>
               <th>ID</th>
               <th>Username</th>
-              <th>Password</th>
               <th>Nomer HP</th>
               <th>Privilege</th>
             </tr>
           </thead>
           <tbody>
             <?php
-            $sql = "SELECT * FROM users";
-            $result = $conn->query($sql);
-            if ($result->num_rows > 0) {
-              while ($row = $result->fetch_assoc()) {
+            // Never expose passwords - removed password column
+            $users = dbFetchAll("SELECT id, username, phone_number, privilege FROM users");
+            foreach ($users as $row):
             ?>
                 <tr>
-                  <td><?= $row['id'] ?></td>
-                  <td><?= $row['username'] ?></td>
-                  <td><?= $row['password'] ?></td>
-                  <td><?= $row['phone_number'] ?></td>
-                  <td><?= $row['privilege'] ?></td>
+                  <td><?= e($row['id']) ?></td>
+                  <td><?= e($row['username']) ?></td>
+                  <td><?= e($row['phone_number']) ?></td>
+                  <td><?= e($row['privilege']) ?></td>
                 </tr>
-            <?php
-              }
-            }
-            ?>
+            <?php endforeach; ?>
           </tbody>
         </table>
         <div class="text-center">
-          <a href="download.php?download-user" class="btn btn-primary">Download</a>
+          <a href="download.php?type=user&token=<?= e(csrfToken()) ?>" class="btn btn-primary">Download</a>
         </div>
       </div>
     <?php
     } else {
       header('Location: admin-report.php');
+      exit;
     }
     ?>
   </div>
