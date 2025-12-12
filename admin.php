@@ -45,15 +45,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['stok-edit-simpan'])) 
           $newFilename = generateSafeFilename($_FILES['stok-edit-gambar']['name']);
           $targetPath = UPLOAD_DIR . $newFilename;
           if (move_uploaded_file($_FILES['stok-edit-gambar']['tmp_name'], $targetPath)) {
-            dbQuery(
+            $result = dbQuery(
               "UPDATE produk SET gambar = ?, nama_produk = ?, category_id = ?, stok = ?, harga = ?, detail = ? WHERE id = ?",
               'ssiiisi',
               [$newFilename, $nama_produk, $category_id, $stok, $harga, $detail, $prodID]
             );
-            $updateProdukStatus = '<script>window.alert("Berhasil mengubah produk!!");</script>';
+            if ($result) {
+              $updateProdukStatus = '<script>window.alert("Berhasil mengubah produk!!");</script>';
+            } else {
+              $updateProdukStatus = '<script>window.alert("Gagal menyimpan data produk!!");</script>';
+            }
+          } else {
+            $updateProdukStatus = '<script>window.alert("Gagal mengupload gambar!!");</script>';
+            error_log("Failed to move uploaded file to: " . $targetPath);
           }
         } else {
-          $updateProdukStatus = '<script>window.alert("' . addslashes(implode(', ', $errors)) . '");</script>';
+          $updateProdukStatus = '<script>window.alert(' . eJs(implode(', ', $errors)) . ');</script>';
         }
       } else {
         // Update without changing image
