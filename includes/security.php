@@ -23,12 +23,26 @@ function eAttr(?string $str): string {
 
 /**
  * Escape output for use in JavaScript
+ * Uses JSON encoding with safe flags, handles invalid UTF-8 gracefully
  */
 function eJs(?string $str): string {
     if ($str === null) {
-        return '';
+        return '""';
     }
-    return json_encode($str, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+
+    try {
+        $result = json_encode($str, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_THROW_ON_ERROR);
+        return $result;
+    } catch (JsonException $e) {
+        // Invalid UTF-8: attempt to convert to valid UTF-8 and retry
+        $cleanStr = mb_convert_encoding($str, 'UTF-8', 'UTF-8');
+        try {
+            return json_encode($cleanStr, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            // Final fallback: return empty string literal
+            return '""';
+        }
+    }
 }
 
 /**
