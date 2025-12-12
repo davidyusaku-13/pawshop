@@ -128,8 +128,8 @@ $categories = dbFetchAll("SELECT id, name FROM kategori");
     <link rel="icon" type="image/x-icon" href="./logo-title.png">
     <link href="./css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" href="./css/datatables.min.css">
-    <script src="./js/datatables.min.js"></script>
     <script src="./js/jquery-3.7.1.min.js"></script>
+    <script src="./js/datatables.min.js"></script>
     <script src="https://kit.fontawesome.com/ec712a3d01.js" crossorigin="anonymous"></script>
 </head>
 
