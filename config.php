@@ -1,34 +1,36 @@
 <?php
+/**
+ * Main configuration file
+ * This is the new secure config that replaces the old config.php
+ */
 
-// LOCAL
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "pawshop";
-
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
-
-$conn->autocommit(TRUE);
-
+// Set timezone
 date_default_timezone_set("Asia/Jakarta");
 
-$privilege = '';
-$userid = '';
-session_start();
-if (
-    isset($_COOKIE['remember-me']) && $_COOKIE['remember-me'] != '' &&
-    isset($_COOKIE['userid']) && $_COOKIE['remember-me'] != '' &&
-    isset($_COOKIE['privilege']) && $_COOKIE['remember-me'] != ''
-) {
-    $userid = $_COOKIE['userid'];
-    $privilege = $_COOKIE['privilege'];
-} else if (isset($_SESSION['userid']) && $_SESSION['userid'] != '' && isset($_SESSION['privilege']) && $_SESSION['privilege'] != '') {
-    $userid = $_SESSION['userid'];
-    $privilege = $_SESSION['privilege'];
-}
+// Include security infrastructure
+require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/includes/security.php';
+require_once __DIR__ . '/includes/csrf.php';
+require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/validation.php';
+
+// Initialize session securely
+initSession();
+
+// Set security headers
+setSecurityHeaders();
+
+// Get database connection (for backward compatibility with existing code)
+$conn = getDB();
+
+// Get current user info (for backward compatibility)
+$userid = getCurrentUserId();
+$privilege = getCurrentUserPrivilege();
+
+// Constants
+define('MIN_STOCK_ALERT', 20);
+define('UPLOAD_DIR', __DIR__ . '/img/');
+define('MAX_UPLOAD_SIZE', 5 * 1024 * 1024); // 5MB
+
+// Admin secret key for registration (hashed with password_hash in production)
+define('ADMIN_SECRET_KEY', '2023');

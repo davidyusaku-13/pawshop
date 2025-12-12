@@ -1,48 +1,84 @@
 <?php
 include 'config.php';
 
-if ($privilege != 'admin') {
-    header('Location: index.php');
-}
+// Require admin access
+requireAdmin();
 
 $status = '';
 $wrongpass = '';
 
-if (isset($_POST['submit'])) {
-    if (isset($_POST['edit_privilege']) && $_POST['edit_privilege'] != null) {
-        $id = $_POST['id'];
-        $edit_privilege = $_POST['edit_privilege'];
-        $sql = "UPDATE users SET privilege='$edit_privilege' WHERE id=$id";
-        if (mysqli_query($conn, $sql)) {
-            $status = '<div class="mt-3 alert alert-success" role="alert">Privilege berhasil diubah!</div>';
-        } else {
-            $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengganti privilege!</div>';
-        }
-    }
-    if (isset($_POST['edit_new_password']) && $_POST['edit_new_password'] != null && isset($_POST['edit_new_repassword']) && $_POST['edit_new_repassword'] != null) {
-        $id = $_POST['id'];
-        $edit_username = $_POST['edit_username'];
-        $edit_new_password = md5($_POST['edit_new_password']);
-        $edit_new_repassword = md5($_POST['edit_new_repassword']);
-        if ($edit_new_password != $edit_new_repassword) {
-            $wrongpass = '<div class="mt-3 alert alert-danger" role="alert">Password does not match!</div>';
-        } else {
-            $sql = "UPDATE users SET username='$edit_username', password='$edit_new_password' WHERE id=$id";
-            if (mysqli_query($conn, $sql)) {
-                $status = '<div class="mt-3 alert alert-success" role="alert">Password berhasil diubah!</div>';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Validate CSRF token
+    if (!csrfValidate()) {
+        $status = '<div class="mt-3 alert alert-danger" role="alert">Sesi tidak valid. Silakan coba lagi.</div>';
+    } else {
+        // Update privilege
+        if (isset($_POST['submit']) && isset($_POST['edit_privilege']) && !empty($_POST['edit_privilege']) && !isset($_POST['delete_username'])) {
+            $id = postPositiveInt('id');
+            $edit_privilege = post('edit_privilege');
+
+            // Validate privilege value
+            if ($id > 0 && in_array($edit_privilege, ['admin', 'user'], true)) {
+                $result = dbQuery(
+                    "UPDATE users SET privilege = ? WHERE id = ?",
+                    'si',
+                    [$edit_privilege, $id]
+                );
+                if ($result) {
+                    $status = '<div class="mt-3 alert alert-success" role="alert">Privilege berhasil diubah!</div>';
+                } else {
+                    $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengganti privilege!</div>';
+                }
             } else {
-                $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengganti password!</div>';
+                $status = '<div class="mt-3 alert alert-danger" role="alert">Invalid privilege value!</div>';
             }
         }
-    }
-    if (isset($_POST['delete_username']) && $_POST['delete_username'] != null) {
-        $id = $_POST['id'];
-        $sql = "DELETE FROM users WHERE id=$id";
-        $status = "";
-        if (mysqli_query($conn, $sql)) {
-            $status = '<div class="mt-3 alert alert-success" role="alert">User has been deleted!</div>';
-        } else {
-            $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to delete user!</div>';
+
+        // Update password (only if new password fields are filled)
+        if (isset($_POST['submit']) && isset($_POST['edit_new_password']) && !empty($_POST['edit_new_password'])) {
+            $id = postPositiveInt('id');
+            $edit_new_password = $_POST['edit_new_password'] ?? '';
+            $edit_new_repassword = $_POST['edit_new_repassword'] ?? '';
+
+            if ($edit_new_password !== $edit_new_repassword) {
+                $wrongpass = '<div class="mt-3 alert alert-danger" role="alert">Password does not match!</div>';
+            } elseif ($id > 0) {
+                // Validate new password
+                $passwordErrors = validatePassword($edit_new_password);
+                if (!empty($passwordErrors)) {
+                    $wrongpass = '<div class="mt-3 alert alert-danger" role="alert">' . e(implode(', ', $passwordErrors)) . '</div>';
+                } else {
+                    // Update with bcrypt hash
+                    $newHash = hashPassword($edit_new_password);
+                    $result = dbQuery(
+                        "UPDATE users SET password = ? WHERE id = ?",
+                        'si',
+                        [$newHash, $id]
+                    );
+                    if ($result) {
+                        $status = '<div class="mt-3 alert alert-success" role="alert">Password berhasil diubah!</div>';
+                    } else {
+                        $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengganti password!</div>';
+                    }
+                }
+            }
+        }
+
+        // Delete user
+        if (isset($_POST['submit']) && isset($_POST['delete_username']) && !empty($_POST['delete_username'])) {
+            $id = postPositiveInt('id');
+
+            // Prevent deleting own account
+            if ($id === $userid) {
+                $status = '<div class="mt-3 alert alert-danger" role="alert">Tidak bisa menghapus akun sendiri!</div>';
+            } elseif ($id > 0) {
+                $result = dbQuery("DELETE FROM users WHERE id = ?", 'i', [$id]);
+                if ($result) {
+                    $status = '<div class="mt-3 alert alert-success" role="alert">User has been deleted!</div>';
+                } else {
+                    $status = '<div class="mt-3 alert alert-danger" role="alert">Failed to delete user!</div>';
+                }
+            }
         }
     }
 }
@@ -90,22 +126,15 @@ if (isset($_POST['submit'])) {
                     <li class="nav-item">
                         <a class="nav-link active" href="./admin-users.php">Users</a>
                     </li>
-                    <?php
-                    if (isset($_SESSION['userid']) && $_SESSION['userid'] != null) {
-                    ?>
-
+                    <?php if (isLoggedIn()): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="./logout.php">Logout</a>
                         </li>
-                    <?php
-                    } else {
-                    ?>
+                    <?php else: ?>
                         <li class="nav-item">
                             <a class="nav-link" href="./login.php">Login</a>
                         </li>
-                    <?php
-                    }
-                    ?>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
@@ -128,14 +157,29 @@ if (isset($_POST['submit'])) {
                     </div>
                     <div class="modal-body">
                         <form action="" method="POST">
+                            <?= csrfField() ?>
                             <input type="hidden" name="id">
-                            <input class="form-control" type="text" name="edit_username" required>
-                            <input class="mt-2 form-control" type="password" name="edit_old_password" required>
-                            <input class="mt-2 form-control" type="password" name="edit_new_password" placeholder="New Password">
-                            <input class="mt-2 form-control" type="password" name="edit_new_repassword" placeholder="Retype Password">
-                            <input class="mt-2 form-control" type="text" name="edit_privilege" placeholder="Privilege">
+                            <div class="form-floating">
+                                <input class="form-control" type="text" name="edit_username" id="edit_username" readonly>
+                                <label for="edit_username">Username</label>
+                            </div>
+                            <div class="form-floating mt-2">
+                                <input class="form-control" type="password" name="edit_new_password" id="edit_new_password" placeholder="New Password" minlength="6">
+                                <label for="edit_new_password">New Password (kosongkan jika tidak diubah)</label>
+                            </div>
+                            <div class="form-floating mt-2">
+                                <input class="form-control" type="password" name="edit_new_repassword" id="edit_new_repassword" placeholder="Retype Password" minlength="6">
+                                <label for="edit_new_repassword">Retype Password</label>
+                            </div>
+                            <div class="form-floating mt-2">
+                                <select class="form-select" name="edit_privilege" id="edit_privilege">
+                                    <option value="user">User</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                                <label for="edit_privilege">Privilege</label>
+                            </div>
                             <div class="d-flex justify-content-end">
-                                <input type="submit" name="submit" class="mt-2 btn btn-primary"></input>
+                                <input type="submit" name="submit" class="mt-2 btn btn-primary">
                             </div>
                         </form>
                     </div>
@@ -154,9 +198,10 @@ if (isset($_POST['submit'])) {
                     </div>
                     <div class="modal-body">
                         <form class="d-flex justify-content-between" action="" method="POST">
+                            <?= csrfField() ?>
                             <input type="hidden" name="id" value="">
                             <input type="hidden" name="delete_username">
-                            <input type="submit" name="submit" value="Yes" class="mt-2 btn btn-danger"></input>
+                            <input type="submit" name="submit" value="Yes" class="mt-2 btn btn-danger">
                             <button data-bs-dismiss="modal" class="mt-2 btn btn-primary">No</button>
                         </form>
                     </div>
@@ -173,39 +218,35 @@ if (isset($_POST['submit'])) {
                         <th>Aksi</th>
                         <th>ID</th>
                         <th>Username</th>
-                        <th>Password</th>
+                        <th>Phone</th>
                         <th>Privilege</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php
-                    $fetch = "SELECT * FROM users";
-                    $res = mysqli_query($conn, $fetch);
-
-                    if (mysqli_num_rows($res) > 0) {
-                        while ($row = mysqli_fetch_assoc($res)) {
+                    $users = dbFetchAll("SELECT id, username, phone_number, privilege FROM users");
+                    foreach ($users as $row):
                     ?>
-                            <tr>
-                                <td>
-                                    <button class="btn" data-bs-toggle="modal" data-id="<?= $row['id']; ?>" data-bs-target="#editUser"><i class="fa-solid fa-edit"></i></button>
-                                    <button class="btn" data-bs-toggle="modal" data-id="<?= $row['id']; ?>" data-bs-target="#deleteUser"><i class="fa-solid fa-trash"></i></button>
-                                </td>
-                                <td><?= $row['id']; ?></td>
-                                <td><?= $row['username']; ?></td>
-                                <td><?= $row['password']; ?></td>
-                                <td><?= $row['privilege']; ?></td>
-                            </tr>
-                    <?php
-                        }
-                    }
-                    ?>
+                        <tr>
+                            <td>
+                                <button class="btn" data-bs-toggle="modal" data-id="<?= e($row['id']); ?>" data-bs-target="#editUser"><i class="fa-solid fa-edit"></i></button>
+                                <button class="btn" data-bs-toggle="modal" data-id="<?= e($row['id']); ?>" data-bs-target="#deleteUser"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                            <td><?= e($row['id']); ?></td>
+                            <td><?= e($row['username']); ?></td>
+                            <td><?= e($row['phone_number']); ?></td>
+                            <td><?= e($row['privilege']); ?></td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
                 <tfoot>
-                    <th>Aksi</th>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Password</th>
-                    <th>Privilege</th>
+                    <tr>
+                        <th>Aksi</th>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Phone</th>
+                        <th>Privilege</th>
+                    </tr>
                 </tfoot>
             </table>
         </div>
@@ -243,20 +284,18 @@ if (isset($_POST['submit'])) {
                 },
                 dataType: 'json',
                 success: function(data) {
-                    // Update the modal content with the fetched data
                     if (!data.error) {
                         $('#editUser input[name="id"]').val(data.id);
                         $('#editUser input[name="edit_username"]').val(data.username);
-                        $('#editUser input[name="edit_old_password"]').val(data.password);
-                        $('#editUser input[name="edit_privilege"]').val(data.privilege);
-                        // You can update other modal fields as needed
+                        $('#editUser select[name="edit_privilege"]').val(data.privilege);
+                        // Clear password fields
+                        $('#editUser input[name="edit_new_password"]').val('');
+                        $('#editUser input[name="edit_new_repassword"]').val('');
                     } else {
-                        // Handle errors
                         console.log('Error fetching user:', data.error);
                     }
                 },
                 error: function(xhr, status, error) {
-                    // Handle AJAX errors
                     console.error('AJAX error:', status, error);
                 }
             });
@@ -276,21 +315,15 @@ if (isset($_POST['submit'])) {
                 },
                 dataType: 'json',
                 success: function(data) {
-                    // Update the modal content with the fetched data
                     if (!data.error) {
-                        // Set the text of the paragraph element in the modal header
                         $('#deleteUser .modal-header p').text('Apakah anda yakin ingin menghapus ' + data.username + '?');
-
                         $('#deleteUser input[name="id"]').val(data.id);
                         $('#deleteUser input[name="delete_username"]').val(data.username);
-                        // You can update other modal fields as needed
                     } else {
-                        // Handle errors
                         console.log('Error fetching user:', data.error);
                     }
                 },
                 error: function(xhr, status, error) {
-                    // Handle AJAX errors
                     console.error('AJAX error:', status, error);
                 }
             });
