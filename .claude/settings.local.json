@@ -8,7 +8,10 @@
       "Bash(git push)",
       "Bash(git pull:*)",
       "Bash(git branch:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Skill(superpowers:using-superpowers)",
+      "Skill(superpowers:systematic-debugging)",
+      "Bash(docker-compose exec:*)"
     ]
   }
 }
