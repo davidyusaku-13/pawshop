@@ -63,8 +63,9 @@ class OrderService
 
             // Generate unique transaction ID
             $transId = "TRS" . date("dmyHis") . rand(10, 99);
-            $timestamp = date("d-m-Y");
-            $expiryDate = (int)date("dmyHis") + 20000000000;
+            $timestamp = date("d-m-Y H:i");
+            // Expiry date: 24 hours payment deadline (Unix timestamp)
+            $expiryDate = time() + 86400;
 
             // Insert parent order (status 1 = Menunggu Pembayaran)
             Database::execute(

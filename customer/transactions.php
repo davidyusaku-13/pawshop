@@ -72,7 +72,15 @@ include __DIR__ . '/../includes/navbar.php';
 
         $formattedExpiry = "-";
         if (!empty($row['expiry_date'])) {
-            $formattedExpiry = substr($row['expiry_date'], 0, 2) . '-' . substr($row['expiry_date'], 2, 2) . '-20' . substr($row['expiry_date'], 4, 2);
+            $rawExp = $row['expiry_date'];
+            if (is_numeric($rawExp) && (int)$rawExp > 1000000000 && (int)$rawExp < 3000000000) {
+                $formattedExpiry = date("d-m-Y H:i", (int)$rawExp) . " WIB";
+            } elseif (!empty($row['timestamp'])) {
+                $orderTime = strtotime($row['timestamp']);
+                if ($orderTime !== false) {
+                    $formattedExpiry = date("d-m-Y H:i", $orderTime + 86400) . " WIB";
+                }
+            }
         }
         ?>
         <div class="card border rounded-3 shadow-none bg-white">

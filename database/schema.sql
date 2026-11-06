@@ -111,9 +111,9 @@ CREATE TABLE IF NOT EXISTS `transaksi` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO `transaksi` (`id`, `timestamp`, `user_id`, `total_amount`, `payment_method`, `bukti_pembayaran`, `status_id`, `expiry_date`) VALUES
-('TRS141223140150', '14-12-2023', 2, 31567, 'Transfer', NULL, 1, 341223140150),
-('TRS141223140920', '14-12-2023', 2, 2969, 'Tunai', NULL, 1, 341223140920),
-('TRS141223145043', '14-12-2023', 2, 790, 'Transfer', 'bolt.jpg', 7, 341223145043)
+('TRS141223140150', '14-12-2023', 2, 31567, 'Transfer', NULL, 1, 1702598400),
+('TRS141223140920', '14-12-2023', 2, 2969, 'Tunai', NULL, 1, 1702598400),
+('TRS141223145043', '14-12-2023', 2, 790, 'Transfer', 'bolt.jpg', 7, 1702598400)
 ON DUPLICATE KEY UPDATE `total_amount`=VALUES(`total_amount`);
 
 -- --------------------------------------------------------
