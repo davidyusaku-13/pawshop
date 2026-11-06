@@ -24,6 +24,69 @@
         }
         <?php unset($_SESSION['cart_status']); ?>
       <?php endif; ?>
+
+      // Modern Cart Stepper AJAX Interactions
+      function updateCartItem(productId, newQty, cardEl) {
+        var formData = new FormData();
+        formData.append('product_id', productId);
+        formData.append('quantity', newQty);
+        formData.append('ajax', '1');
+
+        fetch('<?= BASE_URL ?>cart/update.php', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data && data.success) {
+            var qtyInput = cardEl.querySelector('.cart-qty-val');
+            if (qtyInput) qtyInput.value = data.quantity;
+
+            var subtotalEl = cardEl.querySelector('.item-subtotal-val');
+            if (subtotalEl) subtotalEl.textContent = data.itemSubtotal;
+
+            var totalEl = document.getElementById('cartTotalVal');
+            if (totalEl) totalEl.textContent = data.cartTotal;
+
+            var badgeEl = document.getElementById('navCartBadge');
+            if (badgeEl) badgeEl.textContent = data.cartCount;
+          }
+        })
+        .catch(function(err) {
+          console.error('Error updating cart:', err);
+        });
+      }
+
+      document.querySelectorAll('.btn-step-inc').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var card = this.closest('.cart-item-card');
+          var input = card.querySelector('.cart-qty-val');
+          var max = parseInt(this.getAttribute('data-max') || '999', 10);
+          var cur = parseInt(input.value, 10);
+          if (cur < max) {
+            updateCartItem(this.getAttribute('data-id'), cur + 1, card);
+          }
+        });
+      });
+
+      document.querySelectorAll('.btn-step-dec').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var card = this.closest('.cart-item-card');
+          var input = card.querySelector('.cart-qty-val');
+          var cur = parseInt(input.value, 10);
+          var prodId = this.getAttribute('data-id');
+          if (cur > 1) {
+            updateCartItem(prodId, cur - 1, card);
+          } else {
+            if (confirm('Hapus produk ini dari keranjang belanja?')) {
+              window.location.href = '<?= BASE_URL ?>cart/remove.php?product_id=' + prodId;
+            }
+          }
+        });
+      });
     });
   </script>
 </body>

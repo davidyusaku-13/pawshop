@@ -56,7 +56,7 @@
               <a class="nav-link position-relative" data-bs-toggle="offcanvas" href="#cart" role="button" aria-controls="cart">
                 <i class="fa-solid fa-cart-shopping"></i>
                 <?php if (!empty($_SESSION['cart'])): ?>
-                  <span class="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                  <span class="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger" id="navCartBadge" style="font-size: 0.65rem;">
                     <?= count($_SESSION['cart']) ?>
                   </span>
                 <?php endif; ?>
