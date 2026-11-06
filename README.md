@@ -3,6 +3,7 @@
 > Modern, lightweight, and containerized PHP e-commerce platform specializing in feline nutrition and pet supplies.
 
 [![PHP Version](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php&logoColor=white)](https://www.php.net/)
+[![PHPUnit](https://img.shields.io/badge/PHPUnit-11.5-3788C0?logo=php&logoColor=white)](https://phpunit.de/)
 [![MariaDB Version](https://img.shields.io/badge/MariaDB-10.11-003545?logo=mariadb&logoColor=white)](https://mariadb.org/)
 [![Bootstrap Version](https://img.shields.io/badge/Bootstrap-5.3-7952B3?logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
 [![Containerized](https://img.shields.io/badge/Container-Podman%20%7C%20Docker-892CA0?logo=podman&logoColor=white)](https://podman.io/)
@@ -12,7 +13,7 @@
 
 ## 📖 Overview
 
-**Pawshop** is a full-featured e-commerce web application engineered for cat lovers and pet supply retailers. Originally built on a legacy LAMP stack, the project has been comprehensively refactored, modernized, and containerized to follow modern software engineering standards—eliminating XAMPP dependencies, separating business logic into reusable domain services, optimizing frontend assets, and delivering a responsive, app-like customer shopping experience.
+**Pawshop** is a full-featured e-commerce web application engineered for cat lovers and pet supply retailers. Originally built on a legacy LAMP stack, the project has been comprehensively refactored, modernized, and containerized to follow modern software engineering standards—eliminating XAMPP dependencies, separating business logic into reusable domain services, adding clean extensionless URLs, building a comprehensive PHPUnit test suite, optimizing frontend assets, and delivering a responsive, app-like customer shopping experience.
 
 ---
 
@@ -33,6 +34,8 @@
 
 ### 🏗️ Architecture & Engineering
 - **Domain Service Layer (`src/`):** Clean separation of concerns encapsulating business logic into dedicated services (`AuthService`, `ProductService`, `OrderService`, `FileUploader`, and `Database`).
+- **Clean Extensionless URLs:** `.htaccess` URL rewriting allowing clean routes (`/auth/login`, `/customer/transactions`, `/admin/products`) with canonical 301 redirects for legacy `.php` paths.
+- **Automated Unit Test Harness (TDD):** Fast in-memory unit tests powered by PHPUnit 11 and testability seams (`Database::createWithPdo`), covering business logic, order transactions, stock deductions, and authentication.
 - **Resilient Dual Database Driver:** Transparent PDO abstraction with an automatic MySQLi fallback, complete with prepared statements and ACID transaction rollback support.
 - **Performance Optimized:** 
   - Downscaled legacy 8K/6K image assets to web-optimized resolutions (-95.4% payload reduction, saving over 18 MB per load).
@@ -45,6 +48,7 @@
 ## 🛠️ Tech Stack
 
 - **Backend:** PHP 8.2 (Apache)
+- **Testing:** PHPUnit 11 (Unit test suites with in-memory SQLite test doubles)
 - **Database:** MariaDB 10.11
 - **Database Management:** phpMyAdmin
 - **Frontend:** HTML5, CSS3, JavaScript (Vanilla ES6+), Bootstrap 5.3, FontAwesome 6
@@ -79,13 +83,26 @@ The database initializes automatically on the first run from `database/schema.sq
 
 ### 3. Access URLs
 
-| Portal | URL | Description |
+| Portal | Clean URL | Description |
 | :--- | :--- | :--- |
 | **Storefront** | [http://localhost:8000/](http://localhost:8000/) | Customer catalog, cart, and shopping flow |
+| **Login** | [http://localhost:8000/auth/login](http://localhost:8000/auth/login) | Customer and administrator login portal |
 | **Admin Panel** | [http://localhost:8000/admin](http://localhost:8000/admin) | Store management, analytics, and reports |
 | **phpMyAdmin** | [http://localhost:8080/](http://localhost:8080/) | Direct database administration |
 
-### 4. Stop Application
+### 4. Run Automated Tests
+
+Inside the running container:
+```bash
+podman exec pawshop-web ./vendor/bin/phpunit --testdox
+```
+
+Or locally on host (with PHP installed):
+```bash
+./vendor/bin/phpunit --testdox
+```
+
+### 5. Stop Application
 ```bash
 podman-compose down
 # or: docker compose down
@@ -124,22 +141,22 @@ pawshop/
 │   ├── images/             # Optimized brand, carousel, and product photos
 │   └── js/                 # Client scripts
 ├── auth/                   # Authentication endpoints
-│   ├── login.php           # User login portal
-│   ├── logout.php          # Session termination
-│   └── register.php        # Customer registration
+│   ├── login.php           # User login portal (/auth/login)
+│   ├── logout.php          # Session termination (/auth/logout)
+│   └── register.php        # Customer registration (/auth/register)
 ├── cart/                   # Shopping cart actions
-│   ├── add.php             # Add to cart
-│   ├── checkout.php        # Atomic checkout processor
-│   ├── remove.php          # Remove cart line item
-│   └── update.php          # AJAX quantity stepper endpoint
+│   ├── add.php             # Add to cart (/cart/add)
+│   ├── checkout.php        # Atomic checkout processor (/cart/checkout)
+│   ├── remove.php          # Remove cart line item (/cart/remove)
+│   └── update.php          # AJAX quantity stepper endpoint (/cart/update)
 ├── config/                 # Environment & database configuration
-│   └── database.php        # Database connection & PSR-4 autoloader
+│   └── database.php        # Database connection & autoloader
 ├── customer/               # Customer account views
-│   ├── invoice.php         # Printable invoice receipt
-│   ├── product-detail.php  # Detailed product view
-│   ├── profile.php         # Customer account hub
-│   ├── transaction-detail.php # Detailed order view
-│   └── transactions.php    # Customer order tracking & receipt upload
+│   ├── invoice.php         # Printable invoice receipt (/customer/invoice)
+│   ├── product-detail.php  # Detailed product view (/customer/product-detail)
+│   ├── profile.php         # Customer account hub (/customer/profile)
+│   ├── transaction-detail.php # Detailed order view (/customer/transaction-detail)
+│   └── transactions.php    # Customer order tracking (/customer/transactions)
 ├── database/               # Database migrations & schemas
 │   └── schema.sql          # Base database DDL and initial seeds
 ├── includes/               # Reusable view partials & components
@@ -160,10 +177,18 @@ pawshop/
 │   ├── helpers.php         # Global helpers (formatting, flash messages, URL generation)
 │   ├── OrderService.php    # Order processing, status transitions, and deadlines
 │   └── ProductService.php  # Product catalog and inventory management
-├── .htaccess               # Apache compression, caching, and security headers
+├── tests/                  # Automated Test Suite (PHPUnit)
+│   ├── Unit/               # Isolated in-memory unit tests
+│   │   ├── AuthServiceTest.php
+│   │   ├── HelpersTest.php
+│   │   └── OrderServiceTest.php
+│   └── bootstrap.php       # Test suite bootstrap & test session init
+├── .htaccess               # Clean URL rewrites, caching, and security headers
+├── composer.json           # Composer dependencies & PSR-4 autoloading
 ├── docker-compose.yml      # Podman/Docker multi-container orchestration
 ├── Dockerfile              # PHP 8.2 Apache container definition
-└── index.php               # Customer storefront homepage
+├── phpunit.xml             # PHPUnit 11 test configuration
+└── index.php               # Customer storefront homepage (/)
 ```
 
 ---
@@ -172,11 +197,13 @@ pawshop/
 
 This project strictly adheres to [Conventional Commits](https://www.conventionalcommits.org/):
 
-- `feat:` New features (e.g., AJAX category switching, offcanvas cart drawer)
+- `feat:` New features (e.g., AJAX category switching, clean extensionless URLs)
 - `fix:` Bug fixes (e.g., UI layout alignments, deadline calculations)
+- `test:` Unit and integration tests, test harness configuration
 - `refactor:` Code restructuring without changing external behavior
 - `perf:` Performance optimizations (e.g., image compression, caching headers)
 - `style:` Formatting and design adjustments
+- `docs:` Documentation updates
 - `chore:` Dependency or configuration updates
 
 ---
