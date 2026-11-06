@@ -1,0 +1,41 @@
+services:
+  web:
+    build: .
+    container_name: pawshop-web
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html:z
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASS=rootpassword
+      - DB_NAME=pawshop
+    depends_on:
+      - db
+
+  db:
+    image: docker.io/library/mariadb:10.11
+    container_name: pawshop-db
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=pawshop
+    ports:
+      - "3306:3306"
+    volumes:
+      - pawshop_db_data:/var/lib/mysql
+      - ./pawshop.sql:/docker-entrypoint-initdb.d/01-pawshop.sql:ro,z
+
+  phpmyadmin:
+    image: docker.io/phpmyadmin/phpmyadmin:latest
+    container_name: pawshop-phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+    depends_on:
+      - db
+
+volumes:
+  pawshop_db_data:

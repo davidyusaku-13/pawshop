@@ -196,7 +196,7 @@ $search = '';
                         <input type="hidden" name="product_id" value="<?= $item['id'] ?>">
                         <?php
                         $id = $item['id'];
-                        $sql = "SELECT * FROM product WHERE id='$id'";
+                        $sql = "SELECT * FROM produk WHERE id='$id'";
                         $res = mysqli_query($conn, $sql);
                         if (mysqli_num_rows($res) > 0) {
                           while ($row = mysqli_fetch_assoc($res)) {

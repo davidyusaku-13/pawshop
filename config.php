@@ -1,17 +1,18 @@
 <?php
 
-// LOCAL
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "pawshop";
+// Database configuration (supports environment variables or defaults to localhost)
+$servername = getenv('DB_HOST') ?: "localhost";
+$username = getenv('DB_USER') ?: "root";
+$password = getenv('DB_PASS') !== false ? getenv('DB_PASS') : "";
+$dbname = getenv('DB_NAME') ?: "pawshop";
+$port = getenv('DB_PORT') ? (int)getenv('DB_PORT') : 3306;
 
 // Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = new mysqli($servername, $username, $password, $dbname, $port);
 
 // Check connection
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
 }
 
 $conn->autocommit(TRUE);
