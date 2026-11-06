@@ -255,6 +255,21 @@ body {
   transform: scale(1.04);
 }
 
+.order-id-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 0.35rem 0.65rem;
+  line-height: 1.2;
+  border-radius: 6px;
+  background-color: var(--pawshop-dark);
+  color: #ffffff;
+}
+
 /* CART DRAWER */
 .cart-drawer.offcanvas-end {
   width: 100vw;

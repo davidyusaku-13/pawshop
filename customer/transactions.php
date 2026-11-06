@@ -87,7 +87,7 @@ include __DIR__ . '/../includes/navbar.php';
           <!-- Card Header -->
           <div class="card-header bg-light border-bottom d-flex flex-wrap justify-content-between align-items-center py-3 px-4 gap-2">
             <div class="d-flex align-items-center gap-2 flex-wrap">
-              <span class="badge bg-dark font-monospace px-2 py-1">ID #<?= $row['id'] ?></span>
+              <span class="order-id-badge">#<?= $row['id'] ?></span>
               <span class="text-muted small">
                 <i class="fa-regular fa-calendar me-1"></i> <?= $row['timestamp'] ?>
               </span>
