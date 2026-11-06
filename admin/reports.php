@@ -2,7 +2,13 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/admin-guard.php';
 
+use App\ProductService;
+use App\AuthService;
+use App\Database;
+
 $pageTitle = "Pawshop | Laporan Penjualan & Data";
+$prodCount = ProductService::count();
+$userCount = count(AuthService::getAllUsers());
 ?>
 <!doctype html>
 <html lang="en">
@@ -62,9 +68,6 @@ $pageTitle = "Pawshop | Laporan Penjualan & Data";
           <div class="card-body d-flex flex-column justify-content-between">
             <div>
               <p class="text-muted small">Laporan katalog produk lengkap mencakup ID, nama produk, kategori, harga, dan sisa stok.</p>
-              <?php
-              $prodCount = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM produk"))['c'] ?? 0;
-              ?>
               <div class="alert alert-light border my-3 text-center">
                 <span class="fs-4 fw-bold text-success"><?= $prodCount ?></span>
                 <span class="d-block small text-muted">Total Produk Terdaftar</span>
@@ -88,9 +91,6 @@ $pageTitle = "Pawshop | Laporan Penjualan & Data";
           <div class="card-body d-flex flex-column justify-content-between">
             <div>
               <p class="text-muted small">Laporan akun pengguna dan hak akses terdaftar di sistem Pawshop.</p>
-              <?php
-              $userCount = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as c FROM users"))['c'] ?? 0;
-              ?>
               <div class="alert alert-light border my-3 text-center">
                 <span class="fs-4 fw-bold text-info"><?= $userCount ?></span>
                 <span class="d-block small text-muted">Total Pengguna Terdaftar</span>

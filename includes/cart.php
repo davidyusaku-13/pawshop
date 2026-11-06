@@ -1,80 +1,76 @@
-  <!-- Start Cart -->
+  <!-- Start Cart Offcanvas -->
   <div class="offcanvas offcanvas-end" tabindex="-1" id="cart" aria-labelledby="cartLabel">
-    <div class="offcanvas-header">
-      <h5 class="offcanvas-title" id="cartLabel">Keranjang</h5>
+    <div class="offcanvas-header border-bottom">
+      <h5 class="offcanvas-title fw-bold" id="cartLabel"><i class="fa-solid fa-cart-shopping me-2"></i> Keranjang Belanja</h5>
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
-      <div>
-        <div class="table-responsive">
-          <table class="table table-bordered table-striped">
-            <thead>
-              <tr>
-                <th>Aksi</th>
-                <th>Nama</th>
-                <th>Qty</th>
-                <th>Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php
-              $cartTotal = 0;
-              if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
-                foreach ($_SESSION['cart'] as $item) {
-                  $itemSubtotal = $item['quantity'] * $item['price'];
-                  $cartTotal += $itemSubtotal;
-              ?>
-                  <tr>
-                    <td class="text-center">
-                      <a href="<?= BASE_URL ?>cart/remove.php?product_id=<?= $item['id'] ?>"><i class="fa-solid fa-trash text-danger"></i></a>
-                    </td>
-                    <td><?= htmlspecialchars($item['name']) ?></td>
-                    <td style="width: 7em;">
-                      <form action="<?= BASE_URL ?>cart/update.php" method="POST">
-                        <input type="hidden" name="product_id" value="<?= $item['id'] ?>">
-                        <?php
-                        $prodId = $item['id'];
-                        $stockRes = mysqli_query($conn, "SELECT stok FROM produk WHERE id='$prodId'");
-                        $maxStok = 999;
-                        if ($stockRes && $stockRow = mysqli_fetch_assoc($stockRes)) {
-                          $maxStok = $stockRow['stok'];
-                        }
-                        ?>
-                        <input class="d-block form-control" type="number" name="quantity" max="<?= $maxStok ?>" value="<?= $item['quantity'] ?>" min="1">
-                        <div class="d-block mt-1 text-end">
-                          <button class="btn btn-primary btn-sm" type="submit"><i class="fa-solid fa-refresh"></i></button>
-                        </div>
-                      </form>
-                    </td>
-                    <td>Rp <?= number_format($itemSubtotal) ?></td>
-                  </tr>
-              <?php
-                }
-              } else {
-                echo '<tr><td class="text-center" colspan="4">Keranjang anda kosong!</td></tr>';
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped align-middle">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 40px;" class="text-center">Hapus</th>
+              <th>Produk</th>
+              <th style="width: 90px;">Qty</th>
+              <th class="text-end">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php
+            $cartTotal = 0;
+            if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
+              foreach ($_SESSION['cart'] as $item) {
+                $itemSubtotal = $item['quantity'] * $item['price'];
+                $cartTotal += $itemSubtotal;
+                $prodData = \App\ProductService::getById($item['id']);
+                $maxStok = $prodData ? $prodData['stok'] : 999;
+            ?>
+                <tr>
+                  <td class="text-center">
+                    <a href="<?= BASE_URL ?>cart/remove.php?product_id=<?= $item['id'] ?>" class="text-danger" title="Hapus"><i class="fa-solid fa-trash"></i></a>
+                  </td>
+                  <td class="fw-semibold small"><?= htmlspecialchars($item['name']) ?></td>
+                  <td>
+                    <form action="<?= BASE_URL ?>cart/update.php" method="POST" class="d-flex gap-1">
+                      <input type="hidden" name="product_id" value="<?= $item['id'] ?>">
+                      <input class="form-control form-control-sm px-1 text-center" type="number" name="quantity" max="<?= $maxStok ?>" value="<?= $item['quantity'] ?>" min="1">
+                      <button class="btn btn-outline-primary btn-sm p-1" type="submit" title="Perbarui"><i class="fa-solid fa-arrows-rotate"></i></button>
+                    </form>
+                  </td>
+                  <td class="text-end small fw-bold"><?= format_rupiah($itemSubtotal) ?></td>
+                </tr>
+            <?php
               }
-              ?>
-            </tbody>
-            <tfoot>
-              <tr>
-                <th class="text-end" colspan="3">Total</th>
-                <th>Rp <?= number_format($cartTotal) ?></th>
-              </tr>
-            </tfoot>
-          </table>
-          <form action="<?= BASE_URL ?>cart/checkout.php" method="post">
-            <input type="hidden" name="user_id" value="<?= isset($userid) ? $userid : '' ?>">
-            <select class="form-select" name="payment_method" id="payment_method" required>
-              <option value="" disabled selected>Metode Pembayaran</option>
-              <option value="Transfer">Transfer</option>
-              <option value="Tunai">Tunai</option>
-            </select>
-            <div class="d-flex justify-content-end">
-              <button name="checkout" class="mt-3 btn btn-success">Checkout</button>
+            } else {
+              echo '<tr><td class="text-center py-4 text-muted" colspan="4">Keranjang belanja kosong!</td></tr>';
+            }
+            ?>
+          </tbody>
+          <tfoot class="table-light">
+            <tr>
+              <th class="text-end" colspan="3">Total Tagihan</th>
+              <th class="text-end text-danger"><?= format_rupiah($cartTotal) ?></th>
+            </tr>
+          </tfoot>
+        </table>
+
+        <?php if (!empty($_SESSION['cart'])): ?>
+          <form action="<?= BASE_URL ?>cart/checkout.php" method="POST" class="mt-3">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Pilih Metode Pembayaran:</label>
+              <select class="form-select" name="payment_method" required>
+                <option value="" disabled selected>Pilih Metode Pembayaran</option>
+                <option value="Transfer Bank">Transfer Bank</option>
+                <option value="COD / Bayar di Tempat">COD / Bayar di Tempat</option>
+                <option value="QRIS / E-Wallet">QRIS / E-Wallet</option>
+              </select>
             </div>
+            <button class="btn btn-warning text-dark w-100 fw-bold py-2 shadow-sm" type="submit" name="checkout">
+              <i class="fa-solid fa-credit-card me-1"></i> Checkout Sekarang
+            </button>
           </form>
-        </div>
+        <?php endif; ?>
       </div>
     </div>
   </div>
-  <!-- End Cart -->
+  <!-- End Cart Offcanvas -->

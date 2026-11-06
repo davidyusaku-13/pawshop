@@ -2,39 +2,33 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/auth-guard.php';
 
+use App\AuthService;
+
 $pageTitle = "Pawshop | Profil Pengguna";
 $status = '';
+$userId = AuthService::getCurrentUserId();
 
-if (isset($_POST['submit'])) {
-  if (!empty($_POST['id']) && !empty($_POST['oldpassword']) && !empty($_POST['newpassword']) && !empty($_POST['newrepassword'])) {
-    $id = (int)$_POST['id'];
-    $oldpassword = md5($_POST['oldpassword']);
-    $newpassword = md5($_POST['newpassword']);
-    $newrepassword = md5($_POST['newrepassword']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
+    $oldpassword = $_POST['oldpassword'] ?? '';
+    $newpassword = $_POST['newpassword'] ?? '';
+    $newrepassword = $_POST['newrepassword'] ?? '';
 
-    $sql = "SELECT * FROM users WHERE id=$id AND password='$oldpassword'";
-    $res = mysqli_query($conn, $sql);
-    if ($res && mysqli_num_rows($res) > 0) {
-      if ($newpassword !== $newrepassword) {
-        $status = '<div class="mt-3 alert alert-danger" role="alert">Password baru tidak cocok!</div>';
-      } else {
-        $updateSql = "UPDATE users SET password='$newpassword' WHERE id=$id";
-        if (mysqli_query($conn, $updateSql)) {
-          $status = '<div class="mt-3 alert alert-success" role="alert">Password berhasil diperbarui!</div>';
-        } else {
-          $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal memperbarui password!</div>';
-        }
-      }
+    if (empty($oldpassword) || empty($newpassword) || empty($newrepassword)) {
+        $status = '<div class="alert alert-info" role="alert">Silakan isi semua kolom perubahan password.</div>';
+    } elseif ($newpassword !== $newrepassword) {
+        $status = '<div class="alert alert-danger" role="alert">Konfirmasi password baru tidak cocok!</div>';
+    } elseif (strlen($newpassword) < 4) {
+        $status = '<div class="alert alert-danger" role="alert">Password baru minimal 4 karakter!</div>';
     } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Password lama salah!</div>';
+        if (AuthService::changePassword($userId, $oldpassword, $newpassword)) {
+            $status = '<div class="alert alert-success" role="alert">Password berhasil diperbarui!</div>';
+        } else {
+            $status = '<div class="alert alert-danger" role="alert">Password lama yang Anda masukkan salah!</div>';
+        }
     }
-  } else {
-    $status = '<div class="mt-3 alert alert-info" role="alert">Silakan isi seluruh kolom password.</div>';
-  }
 }
 
-$userRes = mysqli_query($conn, "SELECT * FROM users WHERE id=$userid");
-$userData = ($userRes) ? mysqli_fetch_assoc($userRes) : null;
+$userData = AuthService::getUserById($userId);
 
 include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/navbar.php';
@@ -49,38 +43,28 @@ include __DIR__ . '/../includes/navbar.php';
           <h4 class="card-title fw-bold"><?= htmlspecialchars($userData['username'] ?? '') ?></h4>
           <span class="badge bg-secondary mb-3"><?= strtoupper($userData['privilege'] ?? 'USER') ?></span>
 
-          <hr>
+          <div class="text-start bg-light p-3 rounded mb-4">
+            <p class="mb-1 text-muted small">Nomor Telepon:</p>
+            <p class="fw-semibold mb-0"><?= htmlspecialchars($userData['phone_number'] ?? '-') ?></p>
+          </div>
 
-          <h5 class="fw-semibold text-start mb-3">Ubah Password</h5>
-          <form action="" method="POST" autocomplete="off" class="text-start">
-            <input type="hidden" name="id" value="<?= $userData['id'] ?? '' ?>">
-            
-            <div class="mb-3">
-              <label class="form-label small text-muted">Username</label>
-              <input class="form-control" type="text" value="<?= htmlspecialchars($userData['username'] ?? '') ?>" readonly>
+          <?= $status; ?>
+
+          <h5 class="fw-bold mb-3 text-start">Ganti Password</h5>
+          <form action="" method="POST" class="text-start">
+            <div class="form-floating mb-2">
+              <input type="password" class="form-control" id="oldpassword" name="oldpassword" placeholder="Password Lama" required>
+              <label for="oldpassword">Password Lama</label>
             </div>
-
-            <div class="mb-3">
-              <label class="form-label small text-muted">Password Lama</label>
-              <input class="form-control" type="password" name="oldpassword" placeholder="Password Lama" required>
+            <div class="form-floating mb-2">
+              <input type="password" class="form-control" id="newpassword" name="newpassword" placeholder="Password Baru" required>
+              <label for="newpassword">Password Baru</label>
             </div>
-
-            <div class="mb-3">
-              <label class="form-label small text-muted">Password Baru</label>
-              <input class="form-control" type="password" name="newpassword" placeholder="Password Baru" required>
+            <div class="form-floating mb-3">
+              <input type="password" class="form-control" id="newrepassword" name="newrepassword" placeholder="Konfirmasi Password Baru" required>
+              <label for="newrepassword">Ulangi Password Baru</label>
             </div>
-
-            <div class="mb-3">
-              <label class="form-label small text-muted">Ulangi Password Baru</label>
-              <input class="form-control" type="password" name="newrepassword" placeholder="Konfirmasi Password Baru" required>
-            </div>
-
-            <?= $status ?>
-
-            <div class="d-flex justify-content-end gap-2 mt-4">
-              <button class="btn btn-secondary" type="reset">Reset</button>
-              <button class="btn btn-primary" type="submit" name="submit">Simpan Perubahan</button>
-            </div>
+            <button type="submit" name="submit" class="btn btn-warning w-100 fw-semibold">Simpan Perubahan</button>
           </form>
         </div>
       </div>
@@ -88,7 +72,4 @@ include __DIR__ . '/../includes/navbar.php';
   </div>
 </main>
 
-<?php
-include __DIR__ . '/../includes/cart.php';
-include __DIR__ . '/../includes/footer.php';
-?>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

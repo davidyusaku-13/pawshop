@@ -1,22 +1,19 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 
-if ($_SERVER["REQUEST_METHOD"] === "GET" && isset($_GET['product_id'])) {
-  $product_id = (int)$_GET['product_id'];
+if (isset($_GET['product_id']) && isset($_SESSION['cart'])) {
+    $productId = (int)$_GET['product_id'];
 
-  if (isset($_SESSION['cart'])) {
     foreach ($_SESSION['cart'] as $key => $item) {
-      if ($item['id'] == $product_id) {
-        unset($_SESSION['cart'][$key]);
-        break;
-      }
+        if ($item['id'] === $productId) {
+            unset($_SESSION['cart'][$key]);
+            break;
+        }
     }
-  }
-
-  $redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : BASE_URL . 'index.php';
-  header("Location: " . $redirect);
-  exit();
+    // Re-index array keys
+    $_SESSION['cart'] = array_values($_SESSION['cart']);
 }
 
-header("Location: " . BASE_URL . "index.php");
+$redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : BASE_URL . 'index.php';
+header("Location: {$redirect}");
 exit();

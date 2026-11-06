@@ -2,72 +2,66 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/admin-guard.php';
 
-if (isset($_GET['tanggal-awal']) && isset($_GET['tanggal-akhir'])) {
-  $tanggalAwal = mysqli_real_escape_string($conn, $_GET['tanggal-awal']);
-  $tanggalAkhir = mysqli_real_escape_string($conn, $_GET['tanggal-akhir']);
+use App\Database;
+use App\ProductService;
+use App\AuthService;
 
-  $filename = "transaksi_{$tanggalAwal}_{$tanggalAkhir}.csv";
-  $sql = "SELECT t.id, t.timestamp, u.username, t.total_amount, t.payment_method, s.name 
-          FROM transaksi t 
-          JOIN users u ON t.user_id=u.id 
-          JOIN status s ON t.status_id=s.id 
-          WHERE timestamp >= '$tanggalAwal' AND timestamp <= '$tanggalAkhir'";
-  $result = $conn->query($sql);
+if (isset($_GET['tanggal-awal'], $_GET['tanggal-akhir'])) {
+    $tanggalAwal = trim($_GET['tanggal-awal']);
+    $tanggalAkhir = trim($_GET['tanggal-akhir']);
 
-  header('Content-Type: text/csv; charset=utf-8');
-  header('Content-Disposition: attachment; filename="' . $filename . '"');
+    $filename = "transaksi_{$tanggalAwal}_{$tanggalAkhir}.csv";
+    $sql = "SELECT t.id, t.timestamp, u.username, t.total_amount, t.payment_method, s.name 
+            FROM transaksi t 
+            JOIN users u ON t.user_id = u.id 
+            JOIN status s ON t.status_id = s.id 
+            WHERE timestamp >= ? AND timestamp <= ? 
+            ORDER BY t.id DESC";
+    $results = Database::query($sql, [$tanggalAwal, $tanggalAkhir]);
 
-  $output = fopen('php://output', 'w');
-  fputcsv($output, ["ID Transaksi", "Timestamp", "Username", "Total Amount", "Payment Method", "Status"]);
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
 
-  if ($result) {
-    while ($row = $result->fetch_assoc()) {
-      fputcsv($output, [$row['id'], $row['timestamp'], $row['username'], $row['total_amount'], $row['payment_method'], $row['name']]);
+    $output = fopen('php://output', 'w');
+    fputcsv($output, ["ID Transaksi", "Timestamp", "Username", "Total Amount", "Payment Method", "Status"]);
+
+    foreach ($results as $row) {
+        fputcsv($output, [$row['id'], $row['timestamp'], $row['username'], $row['total_amount'], $row['payment_method'], $row['name']]);
     }
-  }
-  fclose($output);
-  exit();
+    fclose($output);
+    exit();
 
 } elseif (isset($_GET['download-produk'])) {
-  $filename = "produk_data_" . date('Ymd') . ".csv";
-  $sql = "SELECT p.id, p.nama_produk, k.name, p.stok, p.harga, p.detail 
-          FROM produk p 
-          LEFT JOIN kategori k ON p.category_id=k.id";
-  $result = $conn->query($sql);
+    $filename = "produk_data_" . date('Ymd') . ".csv";
+    $products = ProductService::getAll();
 
-  header('Content-Type: text/csv; charset=utf-8');
-  header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
 
-  $output = fopen('php://output', 'w');
-  fputcsv($output, ["ID", "Nama Produk", "Kategori", "Stok", "Harga", "Detail"]);
+    $output = fopen('php://output', 'w');
+    fputcsv($output, ["ID", "Nama Produk", "Kategori", "Stok", "Harga", "Detail"]);
 
-  if ($result) {
-    while ($row = $result->fetch_assoc()) {
-      fputcsv($output, [$row['id'], $row['nama_produk'], $row['name'], $row['stok'], $row['harga'], $row['detail']]);
+    foreach ($products as $row) {
+        fputcsv($output, [$row['id'], $row['nama_produk'], $row['kategori_name'] ?? '-', $row['stok'], $row['harga'], $row['detail']]);
     }
-  }
-  fclose($output);
-  exit();
+    fclose($output);
+    exit();
 
 } elseif (isset($_GET['download-user'])) {
-  $filename = "user_data_" . date('Ymd') . ".csv";
-  $sql = "SELECT id, username, phone_number, privilege FROM users";
-  $result = $conn->query($sql);
+    $filename = "user_data_" . date('Ymd') . ".csv";
+    $users = AuthService::getAllUsers();
 
-  header('Content-Type: text/csv; charset=utf-8');
-  header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
 
-  $output = fopen('php://output', 'w');
-  fputcsv($output, ["ID", "Username", "Nomor Telepon", "Privilege"]);
+    $output = fopen('php://output', 'w');
+    fputcsv($output, ["ID", "Username", "Nomor Telepon", "Privilege"]);
 
-  if ($result) {
-    while ($row = $result->fetch_assoc()) {
-      fputcsv($output, [$row['id'], $row['username'], $row['phone_number'], $row['privilege']]);
+    foreach ($users as $row) {
+        fputcsv($output, [$row['id'], $row['username'], $row['phone_number'] ?? '-', $row['privilege']]);
     }
-  }
-  fclose($output);
-  exit();
+    fclose($output);
+    exit();
 }
 
-header('Location: ' . BASE_URL . 'admin/reports.php');
-exit();
+redirect('admin/reports.php');

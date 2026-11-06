@@ -2,52 +2,64 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/admin-guard.php';
 
-$status = '';
-$wrongpass = '';
+use App\AuthService;
 
-if (isset($_POST['submit'])) {
-  if (!empty($_POST['edit_privilege']) && !empty($_POST['id'])) {
-    $id = (int)$_POST['id'];
-    $edit_privilege = mysqli_real_escape_string($conn, $_POST['edit_privilege']);
-    $sql = "UPDATE users SET privilege='$edit_privilege' WHERE id=$id";
-    if (mysqli_query($conn, $sql)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">Hak akses berhasil diubah!</div>';
-    } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengganti hak akses!</div>';
-    }
-  }
+$currentUserId = AuthService::getCurrentUserId();
 
-  if (!empty($_POST['edit_new_password']) && !empty($_POST['edit_new_repassword']) && !empty($_POST['id'])) {
-    $id = (int)$_POST['id'];
-    $edit_username = mysqli_real_escape_string($conn, $_POST['edit_username']);
-    $edit_new_password = md5($_POST['edit_new_password']);
-    $edit_new_repassword = md5($_POST['edit_new_repassword']);
-    if ($edit_new_password !== $edit_new_repassword) {
-      $wrongpass = '<div class="mt-3 alert alert-danger" role="alert">Password konfirmasi tidak cocok!</div>';
-    } else {
-      $sql = "UPDATE users SET username='$edit_username', password='$edit_new_password' WHERE id=$id";
-      if (mysqli_query($conn, $sql)) {
-        $status = '<div class="mt-3 alert alert-success" role="alert">Password pengguna berhasil diubah!</div>';
-      } else {
-        $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengganti password!</div>';
-      }
+// UBAH HAK AKSES
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_privilege'])) {
+    if (!empty($_POST['edit_privilege']) && !empty($_POST['id'])) {
+        $id = (int)$_POST['id'];
+        $privilege = trim($_POST['edit_privilege']);
+        if (AuthService::updatePrivilege($id, $privilege)) {
+            flash('success', 'Hak akses pengguna berhasil diubah!');
+        } else {
+            flash('danger', 'Gagal mengganti hak akses!');
+        }
+        redirect('admin/users.php');
     }
-  }
-
-  if (!empty($_POST['delete_id'])) {
-    $id = (int)$_POST['delete_id'];
-    if ($id === (int)$userid) {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Anda tidak dapat menghapus akun Anda sendiri yang sedang aktif!</div>';
-    } else {
-      $sql = "DELETE FROM users WHERE id=$id";
-      if (mysqli_query($conn, $sql)) {
-        $status = '<div class="mt-3 alert alert-success" role="alert">Pengguna berhasil dihapus!</div>';
-      } else {
-        $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menghapus pengguna!</div>';
-      }
-    }
-  }
 }
+
+// RESET PASSWORD
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_password'])) {
+    if (!empty($_POST['edit_new_password']) && !empty($_POST['edit_new_repassword']) && !empty($_POST['id'])) {
+        $id = (int)$_POST['id'];
+        $pwd = $_POST['edit_new_password'];
+        $repwd = $_POST['edit_new_repassword'];
+
+        if ($pwd !== $repwd) {
+            flash('danger', 'Konfirmasi password baru tidak cocok!');
+        } elseif (strlen($pwd) < 4) {
+            flash('danger', 'Password baru minimal 4 karakter!');
+        } else {
+            if (AuthService::adminResetPassword($id, $pwd)) {
+                flash('success', 'Password pengguna berhasil direset!');
+            } else {
+                flash('danger', 'Gagal mereset password pengguna!');
+            }
+        }
+        redirect('admin/users.php');
+    }
+}
+
+// HAPUS USER
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_delete'])) {
+    if (!empty($_POST['delete_id'])) {
+        $id = (int)$_POST['delete_id'];
+        if ($id === $currentUserId) {
+            flash('danger', 'Anda tidak dapat menghapus akun Anda sendiri yang sedang aktif!');
+        } else {
+            if (AuthService::deleteUser($id, $currentUserId)) {
+                flash('success', 'Pengguna berhasil dihapus!');
+            } else {
+                flash('danger', 'Gagal menghapus pengguna!');
+            }
+        }
+        redirect('admin/users.php');
+    }
+}
+
+$users = AuthService::getAllUsers();
 ?>
 <!doctype html>
 <html lang="en">
@@ -72,8 +84,7 @@ if (isset($_POST['submit'])) {
       <h3 class="fw-bold">Manajemen Pengguna</h3>
     </div>
 
-    <?= $status; ?>
-    <?= $wrongpass; ?>
+    <?= render_flash() ?>
 
     <!-- MODAL EDIT PRIVILEGE -->
     <div class="modal fade" id="editUsers" tabindex="-1">
@@ -96,7 +107,7 @@ if (isset($_POST['submit'])) {
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-              <button type="submit" name="submit" class="btn btn-primary">Simpan</button>
+              <button type="submit" name="submit_privilege" class="btn btn-primary">Simpan</button>
             </div>
           </form>
         </div>
@@ -129,7 +140,7 @@ if (isset($_POST['submit'])) {
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-              <button type="submit" name="submit" class="btn btn-primary">Simpan Password</button>
+              <button type="submit" name="submit_password" class="btn btn-primary">Simpan Password</button>
             </div>
           </form>
         </div>
@@ -151,7 +162,7 @@ if (isset($_POST['submit'])) {
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-              <button type="submit" name="submit" class="btn btn-danger">Hapus</button>
+              <button type="submit" name="submit_delete" class="btn btn-danger">Hapus</button>
             </div>
           </form>
         </div>
@@ -173,37 +184,31 @@ if (isset($_POST['submit'])) {
               </tr>
             </thead>
             <tbody>
-              <?php
-              $fetch = "SELECT id, username, phone_number, privilege FROM users ORDER BY id ASC";
-              $res = mysqli_query($conn, $fetch);
-              if ($res && mysqli_num_rows($res) > 0) {
-                while ($row = mysqli_fetch_assoc($res)) {
-              ?>
-                  <tr>
-                    <td><?= $row['id']; ?></td>
-                    <td class="fw-semibold"><?= htmlspecialchars($row['username']); ?></td>
-                    <td><?= htmlspecialchars($row['phone_number'] ?? '-'); ?></td>
-                    <td>
-                      <span class="badge <?= ($row['privilege'] === 'admin') ? 'bg-danger' : 'bg-primary' ?>">
-                        <?= strtoupper($row['privilege']); ?>
-                      </span>
-                    </td>
-                    <td class="text-center">
-                      <button type="button" class="btn btn-sm btn-info text-white" data-bs-toggle="modal" data-bs-target="#editUsers" data-id="<?= $row['id']; ?>" title="Ubah Peran">
-                        <i class="fa-solid fa-user-shield"></i>
-                      </button>
-                      <button type="button" class="btn btn-sm btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#editPasswordUsers" data-id="<?= $row['id']; ?>" title="Reset Password">
-                        <i class="fa-solid fa-key"></i>
-                      </button>
+              <?php foreach ($users as $row): ?>
+                <tr>
+                  <td><?= $row['id']; ?></td>
+                  <td class="fw-semibold"><?= htmlspecialchars($row['username']); ?></td>
+                  <td><?= htmlspecialchars($row['phone_number'] ?? '-'); ?></td>
+                  <td>
+                    <span class="badge <?= ($row['privilege'] === 'admin') ? 'bg-danger' : 'bg-primary' ?>">
+                      <?= strtoupper($row['privilege']); ?>
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-info text-white" data-bs-toggle="modal" data-bs-target="#editUsers" data-id="<?= $row['id']; ?>" title="Ubah Peran">
+                      <i class="fa-solid fa-user-shield"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#editPasswordUsers" data-id="<?= $row['id']; ?>" title="Reset Password">
+                      <i class="fa-solid fa-key"></i>
+                    </button>
+                    <?php if ((int)$row['id'] !== (int)$currentUserId): ?>
                       <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUsers" data-id="<?= $row['id']; ?>" title="Hapus Pengguna">
                         <i class="fa-solid fa-trash"></i>
                       </button>
-                    </td>
-                  </tr>
-              <?php
-                }
-              }
-              ?>
+                    <?php endif; ?>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
             </tbody>
           </table>
         </div>

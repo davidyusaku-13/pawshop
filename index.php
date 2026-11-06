@@ -1,30 +1,19 @@
 <?php
 require_once __DIR__ . '/config/database.php';
 
+use App\ProductService;
+
 $pageTitle = "Pawshop - Kebutuhan Kucing Terlengkap";
-$search = isset($_GET['s']) ? mysqli_real_escape_string($conn, trim($_GET['s'])) : '';
-$kategori = isset($_GET['k']) ? mysqli_real_escape_string($conn, trim($_GET['k'])) : '';
-$item_per_page = isset($_GET['itemsPerPage']) ? max(1, intval($_GET['itemsPerPage'])) : 4;
-$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$search = isset($_GET['s']) ? trim($_GET['s']) : null;
+$kategoriId = isset($_GET['k']) && is_numeric($_GET['k']) ? (int)$_GET['k'] : null;
+$itemPerPage = isset($_GET['itemsPerPage']) ? max(1, (int)$_GET['itemsPerPage']) : 4;
+$currentPage = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 
-// Query building
-$whereClauses = array();
-if (!empty($search)) {
-  $whereClauses[] = "nama_produk LIKE '%$search%'";
-}
-if (!empty($kategori)) {
-  $whereClauses[] = "category_id = '$kategori'";
-}
+$totalItems = ProductService::count($kategoriId, $search);
+$totalPages = max(1, (int)ceil($totalItems / $itemPerPage));
+$offset = ($currentPage - 1) * $itemPerPage;
 
-$whereSql = !empty($whereClauses) ? "WHERE " . implode(" AND ", $whereClauses) : "";
-
-$countRes = mysqli_query($conn, "SELECT COUNT(*) AS total FROM produk $whereSql");
-$total_item = ($countRes && $r = mysqli_fetch_assoc($countRes)) ? (int)$r['total'] : 0;
-$total_page = max(1, ceil($total_item / $item_per_page));
-$offset = ($page - 1) * $item_per_page;
-
-$sql = "SELECT p.*, k.name AS kategori_nama FROM produk p LEFT JOIN kategori k ON p.category_id=k.id $whereSql LIMIT $item_per_page OFFSET $offset";
-$result = mysqli_query($conn, $sql);
+$products = ProductService::getAll($kategoriId, $search, $itemPerPage, $offset);
 
 include __DIR__ . '/includes/header.php';
 include __DIR__ . '/includes/navbar.php';
@@ -69,88 +58,70 @@ include __DIR__ . '/includes/navbar.php';
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="fw-bold">
         <?php
-        if (!empty($search)) {
-          echo 'Hasil pencarian: "' . htmlspecialchars($search) . '"';
-        } else if (!empty($kategori)) {
-          $cnameRes = mysqli_query($conn, "SELECT name FROM kategori WHERE id='$kategori'");
-          $cname = ($cnameRes && $cn = mysqli_fetch_assoc($cnameRes)) ? $cn['name'] : 'Kategori';
-          echo htmlspecialchars($cname);
+        if ($kategoriId) {
+            $cat = ProductService::getCategoryById($kategoriId);
+            echo htmlspecialchars($cat['name'] ?? 'Katalog Produk');
+        } elseif (!empty($search)) {
+            echo "Hasil Pencarian: \"" . htmlspecialchars($search) . "\"";
         } else {
-          echo 'Katalog Produk';
+            echo "Semua Produk";
         }
         ?>
       </h3>
-      <span class="text-muted"><?= $total_item ?> Produk</span>
+      <?php if ($kategoriId || !empty($search)): ?>
+        <a href="<?= BASE_URL ?>index.php" class="btn btn-outline-secondary btn-sm">Lihat Semua</a>
+      <?php endif; ?>
     </div>
 
-    <div class="row g-4">
-      <?php if ($result && mysqli_num_rows($result) > 0): ?>
-        <?php while ($row = mysqli_fetch_assoc($result)): ?>
-          <div class="col-xxl-3 col-xl-4 col-lg-4 col-md-6 col-sm-6">
-            <div class="card h-100 shadow-sm">
-              <a href="<?= BASE_URL ?>customer/product-detail.php?id=<?= $row['id'] ?>">
-                <img class="card-img-top p-2" src="<?= BASE_URL ?>assets/images/<?= htmlspecialchars($row['gambar']) ?>" alt="<?= htmlspecialchars($row['nama_produk']) ?>" style="height: 220px; object-fit: contain;">
-              </a>
-              <div class="card-body d-flex flex-col justify-content-between flex-column">
+    <?= render_flash() ?>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+      <?php if (!empty($products)): ?>
+        <?php foreach ($products as $row): ?>
+          <div class="col">
+            <div class="card h-100 shadow-sm border-0">
+              <img src="<?= BASE_URL ?>assets/images/<?= htmlspecialchars($row['gambar'] ?: 'x.jpg') ?>" class="card-img-top object-fit-cover" style="height: 220px;" alt="<?= htmlspecialchars($row['nama_produk']) ?>" onerror="this.src='<?= BASE_URL ?>assets/images/brand/logo.png'">
+              <div class="card-body d-flex flex-column justify-content-between">
                 <div>
-                  <h5 class="card-title text-truncate" title="<?= htmlspecialchars($row['nama_produk']) ?>">
-                    <a href="<?= BASE_URL ?>customer/product-detail.php?id=<?= $row['id'] ?>" class="text-decoration-none text-dark">
-                      <?= htmlspecialchars($row['nama_produk']) ?>
-                    </a>
-                  </h5>
-                  <p class="text-end fs-5 fw-bold text-primary mb-2">
-                    Rp <?= number_format($row['harga'], 0, ',', '.'); ?>
-                  </p>
+                  <span class="badge bg-light text-muted border mb-2"><?= htmlspecialchars($row['kategori_name'] ?? 'Umum') ?></span>
+                  <h5 class="card-title fw-bold text-truncate" title="<?= htmlspecialchars($row['nama_produk']) ?>"><?= htmlspecialchars($row['nama_produk']) ?></h5>
+                  <p class="text-danger fw-semibold fs-5 mb-1"><?= format_rupiah($row['harga']) ?></p>
+                  <p class="text-muted small">Sisa stok: <strong><?= $row['stok'] ?></strong></p>
                 </div>
-                <form action="<?= BASE_URL ?>cart/add.php" method="POST" autocomplete="off">
-                  <input type="hidden" name="product_id" value="<?= $row['id'] ?>">
-                  <input type="hidden" name="nama_produk" value="<?= htmlspecialchars($row['nama_produk']) ?>">
-                  <input type="hidden" name="harga" value="<?= $row['harga'] ?>">
-                  <div class="mb-2">
-                    <div class="d-flex justify-content-between text-muted small mb-1">
-                      <span>Stok: <?= $row['stok'] ?></span>
-                    </div>
-                    <input type="number" class="form-control form-control-sm" id="quantity" min="1" value="1" max="<?= $row['stok'] ?>" name="quantity" <?= ($row['stok'] <= 0) ? 'disabled' : '' ?>>
-                  </div>
-                  <button type="submit" class="btn btn-primary w-100 btn-sm" <?= ($row['stok'] <= 0) ? 'disabled' : '' ?>>
-                    <?= ($row['stok'] > 0) ? '<i class="fa-solid fa-cart-plus me-1"></i> Masukkan Keranjang' : 'Stok Habis' ?>
-                  </button>
-                </form>
+                <div class="mt-3">
+                  <a href="<?= BASE_URL ?>customer/product-detail.php?id=<?= $row['id'] ?>" class="btn btn-outline-warning text-dark w-100 fw-semibold">
+                    <i class="fa-solid fa-eye me-1"></i> Lihat Detail
+                  </a>
+                </div>
               </div>
             </div>
           </div>
-        <?php endwhile; ?>
+        <?php endforeach; ?>
       <?php else: ?>
-        <div class="col-12 py-5 text-center">
-          <p class="text-muted fs-5">Tidak ada produk yang ditemukan.</p>
+        <div class="col-12 text-center py-5">
+          <p class="text-muted fs-5">Tidak ada produk ditemukan.</p>
         </div>
       <?php endif; ?>
     </div>
-  </div>
 
-  <!-- Pagination -->
-  <?php if ($total_page > 1): ?>
-    <div class="container mt-4 d-flex justify-content-center">
-      <nav aria-label="Page navigation">
-        <ul class="pagination">
-          <li class="page-item <?= ($page <= 1) ? 'disabled' : '' ?>">
-            <a class="page-link" href="?s=<?= urlencode($search) ?>&k=<?= urlencode($kategori) ?>&page=<?= $page - 1 ?>&itemsPerPage=<?= $item_per_page ?>">Prev</a>
-          </li>
-          <?php for ($i = 1; $i <= $total_page; $i++): ?>
-            <li class="page-item <?= ($page == $i) ? 'active' : '' ?>">
-              <a class="page-link" href="?s=<?= urlencode($search) ?>&k=<?= urlencode($kategori) ?>&page=<?= $i ?>&itemsPerPage=<?= $item_per_page ?>"><?= $i ?></a>
+    <!-- Pagination -->
+    <?php if ($totalPages > 1): ?>
+      <nav class="mt-5" aria-label="Navigasi Halaman">
+        <ul class="pagination justify-content-center">
+          <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+            <?php
+            $query = $_GET;
+            $query['page'] = $p;
+            $pageUrl = '?' . http_build_query($query);
+            ?>
+            <li class="page-item <?= ($currentPage == $p) ? 'active' : '' ?>">
+              <a class="page-link" href="<?= $pageUrl ?>"><?= $p ?></a>
             </li>
           <?php endfor; ?>
-          <li class="page-item <?= ($page >= $total_page) ? 'disabled' : '' ?>">
-            <a class="page-link" href="?s=<?= urlencode($search) ?>&k=<?= urlencode($kategori) ?>&page=<?= $page + 1 ?>&itemsPerPage=<?= $item_per_page ?>">Next</a>
-          </li>
         </ul>
       </nav>
-    </div>
-  <?php endif; ?>
+    <?php endif; ?>
+  </div>
 </main>
 
-<?php
-include __DIR__ . '/includes/cart.php';
-include __DIR__ . '/includes/footer.php';
-?>
+<?php include __DIR__ . '/includes/footer.php'; ?>

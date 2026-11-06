@@ -2,6 +2,10 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/admin-guard.php';
 
+use App\Database;
+use App\ProductService;
+use App\AuthService;
+
 $pageTitle = "Pawshop | Hasil Laporan";
 ?>
 <!DOCTYPE html>
@@ -30,8 +34,7 @@ $pageTitle = "Pawshop | Hasil Laporan";
     <?php if (isset($_POST['generate-transaksi'])): ?>
       <?php
       if (empty($_POST['tanggal-awal']) || empty($_POST['tanggal-akhir'])) {
-        header('Location: ' . BASE_URL . 'admin/reports.php');
-        exit();
+          redirect('admin/reports.php');
       }
       $tglAwalInput = $_POST['tanggal-awal'];
       $tglAkhirInput = $_POST['tanggal-akhir'];
@@ -39,6 +42,14 @@ $pageTitle = "Pawshop | Hasil Laporan";
       $tglakhr = new DateTime($tglAkhirInput);
       $tanggalAwal = $tglawl->format("d-m-Y");
       $tanggalAkhir = $tglakhr->format("d-m-Y");
+
+      $sql = "SELECT t.id, t.timestamp, u.username, t.total_amount, t.payment_method, s.name 
+              FROM transaksi t 
+              JOIN users u ON t.user_id=u.id 
+              JOIN status s ON t.status_id=s.id 
+              WHERE timestamp >= ? AND timestamp <= ? 
+              ORDER BY t.id DESC";
+      $orders = Database::query($sql, [$tanggalAwal, $tanggalAkhir]);
       ?>
       <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
@@ -64,26 +75,16 @@ $pageTitle = "Pawshop | Hasil Laporan";
                 </tr>
               </thead>
               <tbody>
-                <?php
-                $sql = "SELECT t.id, t.timestamp, u.username, t.total_amount, t.payment_method, s.name 
-                        FROM transaksi t 
-                        JOIN users u ON t.user_id=u.id 
-                        JOIN status s ON t.status_id=s.id 
-                        WHERE timestamp >= '$tanggalAwal' AND timestamp <= '$tanggalAkhir' 
-                        ORDER BY t.id DESC";
-                $result = $conn->query($sql);
-                if ($result && $result->num_rows > 0):
-                  while ($row = $result->fetch_assoc()):
-                ?>
-                    <tr>
-                      <td class="fw-bold"><?= $row['id'] ?></td>
-                      <td><?= $row['timestamp'] ?></td>
-                      <td><?= htmlspecialchars($row['username']) ?></td>
-                      <td class="fw-semibold">Rp <?= number_format($row['total_amount']) ?></td>
-                      <td><?= htmlspecialchars($row['payment_method']) ?></td>
-                      <td><span class="badge bg-secondary"><?= htmlspecialchars($row['name']) ?></span></td>
-                    </tr>
-                <?php endwhile; else: ?>
+                <?php if (!empty($orders)): foreach ($orders as $row): ?>
+                  <tr>
+                    <td class="fw-bold font-monospace"><?= $row['id'] ?></td>
+                    <td><?= $row['timestamp'] ?></td>
+                    <td><?= htmlspecialchars($row['username']) ?></td>
+                    <td class="fw-semibold text-primary"><?= format_rupiah($row['total_amount']) ?></td>
+                    <td><?= htmlspecialchars($row['payment_method']) ?></td>
+                    <td><span class="badge bg-secondary"><?= htmlspecialchars($row['name']) ?></span></td>
+                  </tr>
+                <?php endforeach; else: ?>
                   <tr><td colspan="6" class="text-center py-4 text-muted">Tidak ada transaksi ditemukan pada rentang tanggal ini.</td></tr>
                 <?php endif; ?>
               </tbody>
@@ -93,6 +94,7 @@ $pageTitle = "Pawshop | Hasil Laporan";
       </div>
 
     <?php elseif (isset($_POST['generate-produk'])): ?>
+      <?php $products = ProductService::getAll(); ?>
       <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
           <h4 class="mb-0 fw-bold">Laporan Data Produk</h4>
@@ -114,21 +116,16 @@ $pageTitle = "Pawshop | Hasil Laporan";
                 </tr>
               </thead>
               <tbody>
-                <?php
-                $sql = "SELECT p.*, k.name AS kategori_name FROM produk p LEFT JOIN kategori k ON p.category_id=k.id ORDER BY p.id ASC";
-                $result = $conn->query($sql);
-                if ($result && $result->num_rows > 0):
-                  while ($row = $result->fetch_assoc()):
-                ?>
-                    <tr>
-                      <td><?= $row['id'] ?></td>
-                      <td class="fw-semibold"><?= htmlspecialchars($row['nama_produk']) ?></td>
-                      <td><?= htmlspecialchars($row['kategori_name'] ?? '-') ?></td>
-                      <td><?= $row['stok'] ?></td>
-                      <td>Rp <?= number_format($row['harga']) ?></td>
-                      <td class="small text-muted text-truncate" style="max-width: 250px;"><?= htmlspecialchars($row['detail'] ?? '-') ?></td>
-                    </tr>
-                <?php endwhile; endif; ?>
+                <?php foreach ($products as $row): ?>
+                  <tr>
+                    <td><?= $row['id'] ?></td>
+                    <td class="fw-semibold"><?= htmlspecialchars($row['nama_produk']) ?></td>
+                    <td><?= htmlspecialchars($row['kategori_name'] ?? '-') ?></td>
+                    <td><?= $row['stok'] ?></td>
+                    <td><?= format_rupiah($row['harga']) ?></td>
+                    <td class="small text-muted text-truncate" style="max-width: 250px;"><?= htmlspecialchars($row['detail'] ?? '-') ?></td>
+                  </tr>
+                <?php endforeach; ?>
               </tbody>
             </table>
           </div>
@@ -136,6 +133,7 @@ $pageTitle = "Pawshop | Hasil Laporan";
       </div>
 
     <?php elseif (isset($_POST['generate-user'])): ?>
+      <?php $users = AuthService::getAllUsers(); ?>
       <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
           <h4 class="mb-0 fw-bold">Laporan Data Pengguna</h4>
@@ -155,19 +153,14 @@ $pageTitle = "Pawshop | Hasil Laporan";
                 </tr>
               </thead>
               <tbody>
-                <?php
-                $sql = "SELECT id, username, phone_number, privilege FROM users ORDER BY id ASC";
-                $result = $conn->query($sql);
-                if ($result && $result->num_rows > 0):
-                  while ($row = $result->fetch_assoc()):
-                ?>
-                    <tr>
-                      <td><?= $row['id'] ?></td>
-                      <td class="fw-semibold"><?= htmlspecialchars($row['username']) ?></td>
-                      <td><?= htmlspecialchars($row['phone_number'] ?? '-') ?></td>
-                      <td><span class="badge <?= ($row['privilege'] === 'admin') ? 'bg-danger' : 'bg-primary' ?>"><?= strtoupper($row['privilege']) ?></span></td>
-                    </tr>
-                <?php endwhile; endif; ?>
+                <?php foreach ($users as $row): ?>
+                  <tr>
+                    <td><?= $row['id'] ?></td>
+                    <td class="fw-semibold"><?= htmlspecialchars($row['username']) ?></td>
+                    <td><?= htmlspecialchars($row['phone_number'] ?? '-') ?></td>
+                    <td><span class="badge <?= ($row['privilege'] === 'admin') ? 'bg-danger' : 'bg-primary' ?>"><?= strtoupper($row['privilege']) ?></span></td>
+                  </tr>
+                <?php endforeach; ?>
               </tbody>
             </table>
           </div>

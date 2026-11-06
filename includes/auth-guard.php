@@ -1,5 +1,3 @@
 <?php
-if (!isset($userid) || empty($userid)) {
-    header('Location: ' . BASE_URL . 'auth/login.php');
-    exit();
-}
+require_once __DIR__ . '/../config/database.php';
+\App\AuthService::requireAuth();

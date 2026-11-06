@@ -2,73 +2,64 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/admin-guard.php';
 
-$status = '';
+use App\ProductService;
 
 // TAMBAH PRODUK
-if (isset($_POST['submit'])) {
-  if (!empty($_POST['product_name']) && !empty($_POST['category_id']) && isset($_POST['stok']) && !empty($_POST['harga'])) {
-    $product_name = mysqli_real_escape_string($conn, trim($_POST['product_name']));
-    $category_id = (int)$_POST['category_id'];
-    $stok = (int)$_POST['stok'];
-    $harga = (int)$_POST['harga'];
-    $detail = mysqli_real_escape_string($conn, trim($_POST['detail'] ?? ''));
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
+    if (!empty($_POST['product_name']) && !empty($_POST['category_id']) && isset($_POST['stok']) && !empty($_POST['harga'])) {
+        $error = null;
+        $success = ProductService::create([
+            'nama_produk' => trim($_POST['product_name']),
+            'category_id' => (int)$_POST['category_id'],
+            'stok'        => (int)$_POST['stok'],
+            'harga'       => (int)$_POST['harga'],
+            'detail'      => trim($_POST['detail'] ?? ''),
+        ], $_FILES['gambar'] ?? null, $error);
 
-    $gambar = !empty($_FILES["gambar"]["name"]) ? basename($_FILES["gambar"]["name"]) : '';
-
-    if (empty($gambar)) {
-      $sql = "INSERT INTO produk (gambar, nama_produk, category_id, stok, harga, detail) VALUES ('x.jpg', '$product_name', $category_id, $stok, $harga, '$detail')";
-    } else {
-      $uniqueName = time() . "_" . preg_replace("/[^a-zA-Z0-9._-]/", "", $gambar);
-      $target_file = ROOT_PATH . "/assets/images/" . $uniqueName;
-      move_uploaded_file($_FILES["gambar"]["tmp_name"], $target_file);
-      $sql = "INSERT INTO produk (gambar, nama_produk, category_id, stok, harga, detail) VALUES ('$uniqueName', '$product_name', $category_id, $stok, $harga, '$detail')";
+        if ($success) {
+            flash('success', 'Produk berhasil ditambahkan!');
+        } else {
+            flash('danger', $error ?: 'Gagal menambahkan produk!');
+        }
+        redirect('admin/products.php');
     }
-
-    if (mysqli_query($conn, $sql)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">Produk berhasil ditambahkan!</div>';
-    } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menambahkan produk!</div>';
-    }
-  }
 }
 
 // EDIT PRODUK
-if (isset($_POST['edit'])) {
-  if (!empty($_POST['id']) && !empty($_POST['edit_product_name']) && !empty($_POST['edit_category_id']) && isset($_POST['edit_stok']) && !empty($_POST['edit_harga'])) {
-    $id = (int)$_POST['id'];
-    $edit_product_name = mysqli_real_escape_string($conn, trim($_POST['edit_product_name']));
-    $edit_category_id = (int)$_POST['edit_category_id'];
-    $edit_stok = (int)$_POST['edit_stok'];
-    $edit_harga = (int)$_POST['edit_harga'];
-    $edit_detail = mysqli_real_escape_string($conn, trim($_POST['edit_detail'] ?? ''));
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit'])) {
+    if (!empty($_POST['id']) && !empty($_POST['edit_product_name']) && !empty($_POST['edit_category_id']) && isset($_POST['edit_stok']) && !empty($_POST['edit_harga'])) {
+        $id = (int)$_POST['id'];
+        $error = null;
+        $success = ProductService::update($id, [
+            'nama_produk' => trim($_POST['edit_product_name']),
+            'category_id' => (int)$_POST['edit_category_id'],
+            'stok'        => (int)$_POST['edit_stok'],
+            'harga'       => (int)$_POST['edit_harga'],
+            'detail'      => trim($_POST['edit_detail'] ?? ''),
+        ], $_FILES['edit_gambar'] ?? null, $error);
 
-    if (empty($_FILES["edit_gambar"]["name"])) {
-      $sql = "UPDATE produk SET nama_produk='$edit_product_name', category_id='$edit_category_id', stok='$edit_stok', harga='$edit_harga', detail='$edit_detail' WHERE id=$id";
-    } else {
-      $edit_gambar = time() . "_" . preg_replace("/[^a-zA-Z0-9._-]/", "", basename($_FILES["edit_gambar"]["name"]));
-      $target_file = ROOT_PATH . "/assets/images/" . $edit_gambar;
-      move_uploaded_file($_FILES["edit_gambar"]["tmp_name"], $target_file);
-      $sql = "UPDATE produk SET gambar='$edit_gambar', nama_produk='$edit_product_name', category_id='$edit_category_id', stok='$edit_stok', harga='$edit_harga', detail='$edit_detail' WHERE id=$id";
+        if ($success) {
+            flash('success', 'Produk berhasil diperbarui!');
+        } else {
+            flash('danger', $error ?: 'Gagal memperbarui produk!');
+        }
+        redirect('admin/products.php');
     }
-
-    if (mysqli_query($conn, $sql)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">Produk berhasil diubah!</div>';
-    } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengubah produk!</div>';
-    }
-  }
 }
 
 // HAPUS PRODUK
-if (isset($_POST['delete']) && !empty($_POST['id'])) {
-  $id = (int)$_POST['id'];
-  $sql = "DELETE FROM produk WHERE id=$id";
-  if (mysqli_query($conn, $sql)) {
-    $status = '<div class="mt-3 alert alert-success" role="alert">Produk berhasil dihapus!</div>';
-  } else {
-    $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menghapus produk!</div>';
-  }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete']) && !empty($_POST['id'])) {
+    $id = (int)$_POST['id'];
+    if (ProductService::delete($id)) {
+        flash('success', 'Produk berhasil dihapus!');
+    } else {
+        flash('danger', 'Gagal menghapus produk!');
+    }
+    redirect('admin/products.php');
 }
+
+$categories = ProductService::getAllCategories();
+$products = ProductService::getAll();
 ?>
 <!doctype html>
 <html lang="en">
@@ -91,15 +82,15 @@ if (isset($_POST['delete']) && !empty($_POST['id'])) {
   <div class="container mt-4 mb-5">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="fw-bold">Manajemen Produk</h3>
-      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newProduct">
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createProduct">
         <i class="fa-solid fa-plus me-1"></i> Tambah Produk
       </button>
     </div>
 
-    <?= $status; ?>
+    <?= render_flash() ?>
 
     <!-- MODAL TAMBAH PRODUK -->
-    <div class="modal fade" id="newProduct" tabindex="-1">
+    <div class="modal fade" id="createProduct" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
@@ -108,42 +99,39 @@ if (isset($_POST['delete']) && !empty($_POST['id'])) {
           </div>
           <form action="" method="POST" enctype="multipart/form-data">
             <div class="modal-body">
-              <div class="mb-3">
-                <label for="gambar" class="form-label small fw-semibold">Foto Produk</label>
-                <input class="form-control" type="file" name="gambar" accept="image/*">
-              </div>
               <div class="form-floating mb-3">
                 <input class="form-control" type="text" name="product_name" placeholder="Nama Produk" required>
-                <label for="product_name">Nama Produk</label>
+                <label>Nama Produk</label>
               </div>
               <div class="form-floating mb-3">
                 <select class="form-select" name="category_id" required>
                   <option value="" disabled selected>Pilih Kategori</option>
-                  <?php
-                  $catQ = mysqli_query($conn, 'SELECT * FROM kategori');
-                  while ($crow = mysqli_fetch_assoc($catQ)) {
-                    echo "<option value='{$crow['id']}'>" . htmlspecialchars($crow['name']) . "</option>";
-                  }
-                  ?>
+                  <?php foreach ($categories as $cat): ?>
+                    <option value="<?= $cat['id']; ?>"><?= htmlspecialchars($cat['name']); ?></option>
+                  <?php endforeach; ?>
                 </select>
                 <label>Kategori</label>
               </div>
               <div class="form-floating mb-3">
-                <input class="form-control" type="number" name="stok" min="0" placeholder="Stok" required>
+                <input class="form-control" type="number" name="stok" placeholder="Stok" min="0" required>
                 <label>Stok</label>
               </div>
               <div class="form-floating mb-3">
-                <input class="form-control" type="number" name="harga" min="0" placeholder="Harga" required>
+                <input class="form-control" type="number" name="harga" placeholder="Harga" min="0" required>
                 <label>Harga (Rp)</label>
               </div>
               <div class="form-floating mb-3">
-                <textarea class="form-control" rows="3" name="detail" placeholder="Detail Produk" style="height: 100px;"></textarea>
+                <textarea class="form-control" name="detail" placeholder="Detail Produk" style="height: 100px"></textarea>
                 <label>Detail Produk</label>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Foto Produk (Maks 5MB: JPG, PNG, WEBP)</label>
+                <input class="form-control" type="file" name="gambar" accept="image/jpeg,image/png,image/webp">
               </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-              <button type="submit" name="submit" class="btn btn-primary">Simpan Produk</button>
+              <button type="submit" name="submit" class="btn btn-primary">Simpan</button>
             </div>
           </form>
         </div>
@@ -155,43 +143,39 @@ if (isset($_POST['delete']) && !empty($_POST['id'])) {
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h4 class="modal-title">Edit Produk</h4>
+            <h4 class="modal-title">Ubah Data Produk</h4>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <form action="" method="POST" enctype="multipart/form-data">
             <div class="modal-body">
               <input type="hidden" name="id" value="">
-              <div class="mb-3">
-                <label class="form-label small fw-semibold">Ubah Foto (Kosongkan jika tidak diubah)</label>
-                <input class="form-control" type="file" name="edit_gambar" accept="image/*">
-              </div>
               <div class="form-floating mb-3">
                 <input class="form-control" type="text" name="edit_product_name" placeholder="Nama Produk" required>
                 <label>Nama Produk</label>
               </div>
               <div class="form-floating mb-3">
                 <select class="form-select" name="edit_category_id" required>
-                  <option value="" disabled>Pilih Kategori</option>
-                  <?php
-                  $catQ2 = mysqli_query($conn, 'SELECT * FROM kategori');
-                  while ($crow2 = mysqli_fetch_assoc($catQ2)) {
-                    echo "<option value='{$crow2['id']}'>" . htmlspecialchars($crow2['name']) . "</option>";
-                  }
-                  ?>
+                  <?php foreach ($categories as $cat): ?>
+                    <option value="<?= $cat['id']; ?>"><?= htmlspecialchars($cat['name']); ?></option>
+                  <?php endforeach; ?>
                 </select>
                 <label>Kategori</label>
               </div>
               <div class="form-floating mb-3">
-                <input class="form-control" type="number" name="edit_stok" min="0" placeholder="Stok" required>
+                <input class="form-control" type="number" name="edit_stok" placeholder="Stok" min="0" required>
                 <label>Stok</label>
               </div>
               <div class="form-floating mb-3">
-                <input class="form-control" type="number" name="edit_harga" min="0" placeholder="Harga" required>
+                <input class="form-control" type="number" name="edit_harga" placeholder="Harga" min="0" required>
                 <label>Harga (Rp)</label>
               </div>
               <div class="form-floating mb-3">
-                <textarea class="form-control" rows="3" name="edit_detail" placeholder="Detail Produk" style="height: 100px;"></textarea>
+                <textarea class="form-control" name="edit_detail" placeholder="Detail Produk" style="height: 100px"></textarea>
                 <label>Detail Produk</label>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Ganti Foto Produk (Kosongkan jika tidak diubah)</label>
+                <input class="form-control" type="file" name="edit_gambar" accept="image/jpeg,image/png,image/webp">
               </div>
             </div>
             <div class="modal-footer">
@@ -214,7 +198,7 @@ if (isset($_POST['delete']) && !empty($_POST['id'])) {
           <form action="" method="POST">
             <div class="modal-body">
               <input type="hidden" name="id" value="">
-              <p class="text-confirm mb-0">Apakah Anda yakin ingin menghapus produk ini?</p>
+              <p class="text-confirm text-muted">Apakah Anda yakin ingin menghapus produk ini?</p>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -229,54 +213,43 @@ if (isset($_POST['delete']) && !empty($_POST['id'])) {
     <div class="card shadow-sm">
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-striped table-hover align-middle" id="productsDataTables">
+          <table class="table table-striped table-hover align-middle" id="productDataTables">
             <thead>
               <tr>
                 <th style="width: 60px;">ID</th>
-                <th style="width: 70px;">Gambar</th>
+                <th style="width: 80px;">Foto</th>
                 <th>Nama Produk</th>
                 <th>Kategori</th>
                 <th>Stok</th>
                 <th>Harga</th>
-                <th style="width: 130px;" class="text-center">Aksi</th>
+                <th style="width: 140px;" class="text-center">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <?php
-              $fetch = "SELECT p.id, p.gambar, p.nama_produk, c.name AS category_name, p.stok, p.harga, p.detail 
-                        FROM produk p 
-                        LEFT JOIN kategori c ON p.category_id=c.id 
-                        ORDER BY p.id DESC";
-              $res = mysqli_query($conn, $fetch);
-              if ($res && mysqli_num_rows($res) > 0) {
-                while ($row = mysqli_fetch_assoc($res)) {
-              ?>
-                  <tr>
-                    <td><?= $row['id']; ?></td>
-                    <td>
-                      <img src="<?= BASE_URL ?>assets/images/<?= htmlspecialchars($row['gambar']) ?>" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: contain;">
-                    </td>
-                    <td class="fw-semibold"><?= htmlspecialchars($row['nama_produk']); ?></td>
-                    <td><?= htmlspecialchars($row['category_name'] ?? '-'); ?></td>
-                    <td>
-                      <span class="badge <?= ($row['stok'] < 20) ? 'bg-danger' : 'bg-success' ?>">
-                        <?= $row['stok']; ?>
-                      </span>
-                    </td>
-                    <td>Rp <?= number_format($row['harga']); ?></td>
-                    <td class="text-center">
-                      <button type="button" class="btn btn-sm btn-info text-white" data-bs-toggle="modal" data-bs-target="#editProduct" data-id="<?= $row['id']; ?>">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                      </button>
-                      <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteProduct" data-id="<?= $row['id']; ?>">
-                        <i class="fa-solid fa-trash"></i>
-                      </button>
-                    </td>
-                  </tr>
-              <?php
-                }
-              }
-              ?>
+              <?php foreach ($products as $row): ?>
+                <tr>
+                  <td><?= $row['id']; ?></td>
+                  <td>
+                    <img src="<?= BASE_URL ?>assets/images/<?= htmlspecialchars($row['gambar'] ?: 'x.jpg'); ?>" class="rounded object-fit-cover" width="50" height="50" alt="" onerror="this.src='<?= BASE_URL ?>assets/images/brand/logo.png'">
+                  </td>
+                  <td class="fw-semibold"><?= htmlspecialchars($row['nama_produk']); ?></td>
+                  <td><span class="badge bg-light text-dark border"><?= htmlspecialchars($row['kategori_name'] ?? '-'); ?></span></td>
+                  <td>
+                    <span class="badge <?= ($row['stok'] < 20) ? 'bg-danger' : 'bg-success' ?>">
+                      <?= $row['stok']; ?>
+                    </span>
+                  </td>
+                  <td><?= format_rupiah($row['harga']); ?></td>
+                  <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editProduct" data-id="<?= $row['id']; ?>" title="Edit">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteProduct" data-id="<?= $row['id']; ?>" title="Hapus">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
             </tbody>
           </table>
         </div>
@@ -287,7 +260,7 @@ if (isset($_POST['delete']) && !empty($_POST['id'])) {
   <script src="<?= BASE_URL ?>assets/js/bootstrap.bundle.min.js"></script>
   <script src="<?= BASE_URL ?>assets/js/jquery.dataTables.min.js"></script>
   <script>
-    new DataTable('#productsDataTables');
+    new DataTable('#productDataTables');
 
     $('#editProduct').on('show.bs.modal', function(event) {
       var button = $(event.relatedTarget);
@@ -320,7 +293,7 @@ if (isset($_POST['delete']) && !empty($_POST['id'])) {
         dataType: 'json',
         success: function(data) {
           if (!data.error) {
-            $('#deleteProduct .text-confirm').text('Apakah Anda yakin ingin menghapus "' + data.nama_produk + '"?');
+            $('#deleteProduct .text-confirm').text('Apakah Anda yakin ingin menghapus produk "' + data.nama_produk + '"?');
             $('#deleteProduct input[name="id"]').val(data.id);
           }
         }

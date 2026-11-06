@@ -14,33 +14,44 @@ if (!defined('BASE_URL')) {
     define('BASE_URL', '/');
 }
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname, $port);
+date_default_timezone_set("Asia/Jakarta");
 
-// Check connection
+// Autoloader for App namespace
+spl_autoload_register(function ($class) {
+    $prefix = 'App\\';
+    $base_dir = ROOT_PATH . '/src/';
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        return;
+    }
+    $relative_class = substr($class, $len);
+    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+    if (file_exists($file)) {
+        require_once $file;
+    }
+});
+
+// Load helper functions
+require_once ROOT_PATH . '/src/helpers.php';
+
+// Create MySQLi connection (backward compatibility for legacy views)
+$conn = new mysqli($servername, $username, $password, $dbname, $port);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-
+$conn->set_charset("utf8mb4");
 $conn->autocommit(TRUE);
 
-date_default_timezone_set("Asia/Jakarta");
-
-$privilege = '';
-$userid = '';
-
+// Initialize Session safely
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-if (
-    isset($_COOKIE['remember-me']) && $_COOKIE['remember-me'] != '' &&
-    isset($_COOKIE['userid']) && $_COOKIE['userid'] != '' &&
-    isset($_COOKIE['privilege']) && $_COOKIE['privilege'] != ''
-) {
-    $userid = $_COOKIE['userid'];
-    $privilege = $_COOKIE['privilege'];
-} else if (isset($_SESSION['userid']) && $_SESSION['userid'] != '' && isset($_SESSION['privilege']) && $_SESSION['privilege'] != '') {
+// SECURE SESSION & AUTH RESOLUTION (Eliminates cookie privilege spoofing)
+$userid = '';
+$privilege = '';
+
+if (!empty($_SESSION['userid'])) {
     $userid = $_SESSION['userid'];
-    $privilege = $_SESSION['privilege'];
+    $privilege = $_SESSION['privilege'] ?? 'user';
 }

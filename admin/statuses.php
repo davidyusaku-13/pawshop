@@ -2,38 +2,47 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/admin-guard.php';
 
-$status = '';
+use App\OrderService;
 
-if (isset($_POST['submit'])) {
-  if (!empty($_POST['status_name'])) {
-    $status_name = mysqli_real_escape_string($conn, trim($_POST['status_name']));
-    $sql = "INSERT INTO status (name) VALUES ('$status_name')";
-    if (mysqli_query($conn, $sql)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">Status berhasil ditambahkan!</div>';
-    } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menambahkan status!</div>';
+// TAMBAH STATUS
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
+    if (!empty($_POST['status_name'])) {
+        if (OrderService::createStatus($_POST['status_name'])) {
+            flash('success', 'Status baru berhasil ditambahkan!');
+        } else {
+            flash('danger', 'Gagal menambahkan status!');
+        }
+        redirect('admin/statuses.php');
     }
-  }
-  if (!empty($_POST['edit_status_name']) && !empty($_POST['id'])) {
-    $id = (int)$_POST['id'];
-    $edit_status_name = mysqli_real_escape_string($conn, trim($_POST['edit_status_name']));
-    $sql = "UPDATE status SET name='$edit_status_name' WHERE id=$id";
-    if (mysqli_query($conn, $sql)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">Edit status berhasil!</div>';
-    } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal mengedit status!</div>';
-    }
-  }
-  if (!empty($_POST['delete_status_name']) && !empty($_POST['id'])) {
-    $id = (int)$_POST['id'];
-    $sql = "DELETE FROM status WHERE id=$id";
-    if (mysqli_query($conn, $sql)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">Status berhasil dihapus!</div>';
-    } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menghapus status!</div>';
-    }
-  }
 }
+
+// EDIT STATUS
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit'])) {
+    if (!empty($_POST['edit_status_name']) && !empty($_POST['id'])) {
+        $id = (int)$_POST['id'];
+        if (OrderService::updateStatusName($id, $_POST['edit_status_name'])) {
+            flash('success', 'Status berhasil diubah!');
+        } else {
+            flash('danger', 'Gagal mengubah status!');
+        }
+        redirect('admin/statuses.php');
+    }
+}
+
+// HAPUS STATUS
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])) {
+    if (!empty($_POST['id'])) {
+        $id = (int)$_POST['id'];
+        if (OrderService::deleteStatus($id)) {
+            flash('success', 'Status berhasil dihapus!');
+        } else {
+            flash('danger', 'Gagal menghapus status! Pastikan tidak ada transaksi yang menggunakan status ini.');
+        }
+        redirect('admin/statuses.php');
+    }
+}
+
+$statuses = OrderService::getAllStatuses();
 ?>
 <!doctype html>
 <html lang="en">
@@ -53,18 +62,18 @@ if (isset($_POST['submit'])) {
 <body>
   <?php include __DIR__ . '/../includes/admin-navbar.php'; ?>
 
-  <div class="container mt-4">
+  <div class="container mt-4 mb-5">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="fw-bold">Manajemen Status Transaksi</h3>
-      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newStatus">
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createStatus">
         <i class="fa-solid fa-plus me-1"></i> Tambah Status
       </button>
     </div>
 
-    <?= $status; ?>
+    <?= render_flash() ?>
 
     <!-- MODAL TAMBAH STATUS -->
-    <div class="modal fade" id="newStatus" tabindex="-1">
+    <div class="modal fade" id="createStatus" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
@@ -73,9 +82,9 @@ if (isset($_POST['submit'])) {
           </div>
           <form action="" method="POST">
             <div class="modal-body">
-              <div class="form-floating">
+              <div class="form-floating mb-3">
                 <input class="form-control" type="text" name="status_name" placeholder="Nama Status" required>
-                <label for="status_name">Nama Status</label>
+                <label>Nama Status</label>
               </div>
             </div>
             <div class="modal-footer">
@@ -92,20 +101,20 @@ if (isset($_POST['submit'])) {
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h4 class="modal-title">Edit Status</h4>
+            <h4 class="modal-title">Ubah Status Transaksi</h4>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <form action="" method="POST">
             <div class="modal-body">
               <input type="hidden" name="id" value="">
-              <div class="form-floating">
+              <div class="form-floating mb-3">
                 <input class="form-control" type="text" name="edit_status_name" placeholder="Nama Status" required>
-                <label for="edit_status_name">Nama Status</label>
+                <label>Nama Status</label>
               </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-              <button type="submit" name="submit" class="btn btn-primary">Simpan Perubahan</button>
+              <button type="submit" name="edit" class="btn btn-primary">Simpan Perubahan</button>
             </div>
           </form>
         </div>
@@ -123,12 +132,11 @@ if (isset($_POST['submit'])) {
           <form action="" method="POST">
             <div class="modal-body">
               <input type="hidden" name="id" value="">
-              <input type="hidden" name="delete_status_name" value="">
-              <p class="text-confirm text-muted">Apakah Anda yakin ingin menghapus status ini?</p>
+              <p class="text-confirm text-muted">Apakah Anda yakin ingin menghapus status transaksi ini?</p>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-              <button type="submit" name="submit" class="btn btn-danger">Hapus</button>
+              <button type="submit" name="delete" class="btn btn-danger">Hapus</button>
             </div>
           </form>
         </div>
@@ -136,7 +144,7 @@ if (isset($_POST['submit'])) {
     </div>
 
     <!-- TABEL STATUS -->
-    <div class="card shadow-sm mt-3">
+    <div class="card shadow-sm">
       <div class="card-body">
         <div class="table-responsive">
           <table class="table table-striped table-hover align-middle" id="statusDataTables">
@@ -144,32 +152,26 @@ if (isset($_POST['submit'])) {
               <tr>
                 <th style="width: 80px;">ID</th>
                 <th>Nama Status</th>
-                <th style="width: 160px;" class="text-center">Aksi</th>
+                <th style="width: 140px;" class="text-center">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <?php
-              $fetch = "SELECT * FROM status ORDER BY id ASC";
-              $res = mysqli_query($conn, $fetch);
-              if ($res && mysqli_num_rows($res) > 0) {
-                while ($row = mysqli_fetch_assoc($res)) {
-              ?>
-                  <tr>
-                    <td><?= $row['id']; ?></td>
-                    <td><span class="badge bg-secondary fs-6"><?= htmlspecialchars($row['name']); ?></span></td>
-                    <td class="text-center">
-                      <button type="button" class="btn btn-sm btn-info text-white" data-bs-toggle="modal" data-bs-target="#editStatus" data-id="<?= $row['id']; ?>">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                      </button>
-                      <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteStatus" data-id="<?= $row['id']; ?>">
-                        <i class="fa-solid fa-trash"></i>
-                      </button>
-                    </td>
-                  </tr>
-              <?php
-                }
-              }
-              ?>
+              <?php foreach ($statuses as $row): ?>
+                <tr>
+                  <td><?= $row['id']; ?></td>
+                  <td class="fw-semibold">
+                    <span class="badge bg-light text-dark border"><?= htmlspecialchars($row['name']); ?></span>
+                  </td>
+                  <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editStatus" data-id="<?= $row['id']; ?>" title="Edit">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteStatus" data-id="<?= $row['id']; ?>" title="Hapus">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
             </tbody>
           </table>
         </div>
@@ -209,9 +211,8 @@ if (isset($_POST['submit'])) {
         dataType: 'json',
         success: function(data) {
           if (!data.error) {
-            $('#deleteStatus .text-confirm').text('Apakah anda yakin ingin menghapus status "' + data.name + '"?');
+            $('#deleteStatus .text-confirm').text('Apakah Anda yakin ingin menghapus status "' + data.name + '"?');
             $('#deleteStatus input[name="id"]').val(data.id);
-            $('#deleteStatus input[name="delete_status_name"]').val(data.name);
           }
         }
       });

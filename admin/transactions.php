@@ -2,30 +2,38 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/admin-guard.php';
 
-$status = '';
+use App\OrderService;
 
-if (isset($_POST['submit'])) {
-  if (!empty($_POST['editID']) && !empty($_POST['edit_status'])) {
-    $editID = mysqli_real_escape_string($conn, $_POST['editID']);
-    $edit_status = (int)$_POST['edit_status'];
-    $sql = "UPDATE transaksi SET status_id='$edit_status' WHERE id='$editID'";
-    if (mysqli_query($conn, $sql)) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">Status transaksi berhasil diperbarui!</div>';
-    } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal memperbarui status!</div>';
-    }
-  }
+// UBAH STATUS TRANSAKSI
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
+    if (!empty($_POST['edit_id']) && !empty($_POST['edit_status'])) {
+        $transID = trim($_POST['edit_id']);
+        $statusID = (int)$_POST['edit_status'];
 
-  if (!empty($_POST['deleteID'])) {
-    $deleteID = mysqli_real_escape_string($conn, $_POST['deleteID']);
-    mysqli_query($conn, "DELETE FROM transaksi_detail WHERE transactions_id='$deleteID'");
-    if (mysqli_query($conn, "DELETE FROM transaksi WHERE id='$deleteID'")) {
-      $status = '<div class="mt-3 alert alert-success" role="alert">Transaksi berhasil dihapus!</div>';
-    } else {
-      $status = '<div class="mt-3 alert alert-danger" role="alert">Gagal menghapus transaksi!</div>';
+        if (OrderService::updateStatus($transID, $statusID)) {
+            flash('success', "Status transaksi #{$transID} berhasil diubah!");
+        } else {
+            flash('danger', 'Gagal mengubah status transaksi!');
+        }
+        redirect('admin/transactions.php');
     }
-  }
 }
+
+// HAPUS TRANSAKSI
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'])) {
+    if (!empty($_POST['delete_id'])) {
+        $deleteID = trim($_POST['delete_id']);
+        if (OrderService::deleteOrder($deleteID)) {
+            flash('success', "Transaksi #{$deleteID} dan rinciannya berhasil dihapus!");
+        } else {
+            flash('danger', 'Gagal menghapus transaksi!');
+        }
+        redirect('admin/transactions.php');
+    }
+}
+
+$statuses = OrderService::getAllStatuses();
+$transactions = OrderService::getAllOrders();
 ?>
 <!doctype html>
 <html lang="en">
@@ -45,45 +53,64 @@ if (isset($_POST['submit'])) {
 <body>
   <?php include __DIR__ . '/../includes/admin-navbar.php'; ?>
 
-  <div class="container-fluid px-4 mt-4 mb-5">
+  <div class="container mt-4 mb-5">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="fw-bold">Manajemen Transaksi</h3>
       <a href="<?= BASE_URL ?>admin/reports.php" class="btn btn-outline-primary btn-sm">
-        <i class="fa-solid fa-chart-line me-1"></i> Lihat Laporan Penjualan
+        <i class="fa-solid fa-file-export me-1"></i> Laporan Transaksi
       </a>
     </div>
 
-    <?= $status; ?>
+    <?= render_flash() ?>
 
     <!-- MODAL EDIT STATUS TRANSAKSI -->
     <div class="modal fade" id="editTransactions" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h4 class="modal-title">Edit Status Transaksi</h4>
+            <h4 class="modal-title">Ubah Status Transaksi</h4>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <form action="" method="POST">
             <div class="modal-body">
-              <input type="hidden" name="editID" value="">
+              <input type="hidden" name="edit_id" value="">
+              <div class="form-floating mb-3">
+                <input class="form-control" type="text" name="display_id" readonly>
+                <label>ID Transaksi</label>
+              </div>
               <div class="form-floating mb-3">
                 <select class="form-select" name="edit_status" required>
-                  <option value="" disabled>Pilih Status</option>
-                  <?php
-                  $stQ = mysqli_query($conn, 'SELECT * FROM status');
-                  while ($stRow = mysqli_fetch_assoc($stQ)) {
-                    echo "<option value='{$stRow['id']}'>" . htmlspecialchars($stRow['name']) . "</option>";
-                  }
-                  ?>
+                  <?php foreach ($statuses as $st): ?>
+                    <option value="<?= $st['id']; ?>"><?= htmlspecialchars($st['name']); ?></option>
+                  <?php endforeach; ?>
                 </select>
-                <label>Status Transaksi</label>
+                <label>Pilih Status Baru</label>
               </div>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-              <button type="submit" name="submit" class="btn btn-primary">Simpan Perubahan</button>
+              <button type="submit" name="submit" class="btn btn-primary">Simpan Status</button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL LIHAT BUKTI PEMBAYARAN -->
+    <div class="modal fade" id="viewPaymentProof" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title fw-bold">Bukti Pembayaran</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-center">
+            <img id="paymentProofImg" src="" class="img-fluid rounded border" alt="Bukti Pembayaran">
+            <p id="noProofText" class="text-muted d-none my-4">Belum ada bukti pembayaran yang diunggah untuk transaksi ini.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+          </div>
         </div>
       </div>
     </div>
@@ -98,12 +125,12 @@ if (isset($_POST['submit'])) {
           </div>
           <form action="" method="POST">
             <div class="modal-body">
-              <input type="hidden" name="deleteID" value="">
+              <input type="hidden" name="delete_id" value="">
               <p class="text-confirm text-muted">Apakah Anda yakin ingin menghapus transaksi ini?</p>
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-              <button type="submit" name="submit" class="btn btn-danger">Hapus</button>
+              <button type="submit" name="delete" class="btn btn-danger">Hapus</button>
             </div>
           </form>
         </div>
@@ -117,66 +144,48 @@ if (isset($_POST['submit'])) {
           <table class="table table-striped table-hover align-middle" id="transactionsDataTables">
             <thead>
               <tr>
-                <th style="width: 50px;">Aksi</th>
                 <th>ID Transaksi</th>
                 <th>Tanggal</th>
-                <th>Pembeli</th>
+                <th>Pengguna</th>
                 <th>Total</th>
                 <th>Metode</th>
+                <th>Bukti</th>
                 <th>Status</th>
-                <th>Bukti Pembayaran</th>
-                <th>Batas Waktu</th>
+                <th style="width: 140px;" class="text-center">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <?php
-              $fetch = "SELECT tr.id, tr.timestamp, u.username, tr.total_amount, tr.payment_method, tr.bukti_pembayaran, st.name AS status_name, tr.expiry_date, tr.status_id 
-                        FROM transaksi tr 
-                        JOIN users u ON tr.user_id=u.id 
-                        JOIN status st ON tr.status_id=st.id 
-                        ORDER BY tr.id DESC";
-              $res = mysqli_query($conn, $fetch);
-              if ($res && mysqli_num_rows($res) > 0) {
-                while ($row = mysqli_fetch_assoc($res)) {
-              ?>
-                  <tr>
-                    <td>
-                      <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-id="<?= $row['id']; ?>" data-bs-target="#deleteTransactions">
-                        <i class="fa-solid fa-trash"></i>
+              <?php foreach ($transactions as $row): ?>
+                <tr>
+                  <td class="font-monospace fw-bold"><?= $row['id']; ?></td>
+                  <td><?= $row['timestamp']; ?></td>
+                  <td class="fw-semibold"><?= htmlspecialchars($row['username']); ?></td>
+                  <td class="fw-semibold text-primary"><?= format_rupiah($row['total_amount']); ?></td>
+                  <td><span class="badge bg-light text-dark border"><?= htmlspecialchars($row['payment_method']); ?></span></td>
+                  <td>
+                    <?php if (!empty($row['bukti_pembayaran'])): ?>
+                      <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#viewPaymentProof" data-proof="<?= BASE_URL ?>assets/images/<?= htmlspecialchars($row['bukti_pembayaran']); ?>">
+                        <i class="fa-solid fa-image me-1"></i> Lihat
                       </button>
-                    </td>
-                    <td class="fw-semibold">
-                      <a href="<?= BASE_URL ?>customer/transaction-detail.php?id=<?= $row['id'] ?>" target="_blank" class="text-decoration-none">
-                        <?= $row['id']; ?>
-                      </a>
-                    </td>
-                    <td><?= htmlspecialchars($row['timestamp']); ?></td>
-                    <td><?= htmlspecialchars($row['username']); ?></td>
-                    <td class="fw-bold">Rp <?= number_format($row['total_amount']); ?></td>
-                    <td><span class="badge bg-secondary"><?= htmlspecialchars($row['payment_method']); ?></span></td>
-                    <td>
-                      <span class="badge <?= ($row['status_id'] == 7) ? 'bg-success' : (($row['status_id'] == 6) ? 'bg-danger' : 'bg-warning text-dark') ?>">
-                        <?= htmlspecialchars($row['status_name']); ?>
-                      </span>
-                      <button class="btn btn-sm btn-link p-0 ms-1" data-bs-toggle="modal" data-id="<?= $row['id']; ?>" data-bs-target="#editTransactions">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                      </button>
-                    </td>
-                    <td>
-                      <?php if (!empty($row['bukti_pembayaran'])): ?>
-                        <a href="<?= BASE_URL ?>assets/images/<?= htmlspecialchars($row['bukti_pembayaran']) ?>" target="_blank" class="btn btn-sm btn-outline-info">
-                          <i class="fa-solid fa-image me-1"></i> Lihat
-                        </a>
-                      <?php else: ?>
-                        <span class="text-muted small">-</span>
-                      <?php endif; ?>
-                    </td>
-                    <td class="small text-muted"><?= htmlspecialchars($row['expiry_date'] ?? '-'); ?></td>
-                  </tr>
-              <?php
-                }
-              }
-              ?>
+                    <?php else: ?>
+                      <span class="text-muted small">Belum ada</span>
+                    <?php endif; ?>
+                  </td>
+                  <td>
+                    <span class="badge <?= ($row['status_id'] == 1 || $row['status_id'] == 3) ? 'bg-warning text-dark' : 'bg-success' ?>">
+                      <?= htmlspecialchars($row['status_name']); ?>
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editTransactions" data-id="<?= $row['id']; ?>" title="Ubah Status">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteTransactions" data-id="<?= $row['id']; ?>" title="Hapus">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
             </tbody>
           </table>
         </div>
@@ -199,18 +208,31 @@ if (isset($_POST['submit'])) {
         dataType: 'json',
         success: function(data) {
           if (!data.error) {
-            $('#editTransactions input[name="editID"]').val(data.id);
+            $('#editTransactions input[name="edit_id"]').val(data.id);
+            $('#editTransactions input[name="display_id"]').val(data.id);
             $('#editTransactions select[name="edit_status"]').val(data.status_id);
           }
         }
       });
     });
 
+    $('#viewPaymentProof').on('show.bs.modal', function(event) {
+      var button = $(event.relatedTarget);
+      var proofUrl = button.data('proof');
+      if (proofUrl) {
+        $('#paymentProofImg').attr('src', proofUrl).removeClass('d-none');
+        $('#noProofText').addClass('d-none');
+      } else {
+        $('#paymentProofImg').addClass('d-none');
+        $('#noProofText').removeClass('d-none');
+      }
+    });
+
     $('#deleteTransactions').on('show.bs.modal', function(event) {
       var button = $(event.relatedTarget);
       var transId = button.data('id');
-      $('#deleteTransactions .text-confirm').text('Apakah Anda yakin ingin menghapus transaksi ' + transId + '?');
-      $('#deleteTransactions input[name="deleteID"]').val(transId);
+      $('#deleteTransactions .text-confirm').text('Apakah Anda yakin ingin menghapus transaksi #' + transId + '?');
+      $('#deleteTransactions input[name="delete_id"]').val(transId);
     });
   </script>
 </body>
