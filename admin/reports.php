@@ -36,11 +36,11 @@ include __DIR__ . '/../includes/admin-header.php';
         <form action="<?= BASE_URL ?>admin/generate-report.php" method="POST">
           <div class="mb-3">
             <label class="form-label small fw-semibold">Tanggal Mulai</label>
-            <input class="form-control" type="date" name="tanggal-awal" required>
+            <input class="form-control" type="date" name="tanggal-awal" value="<?= date('Y-m-d', strtotime('-1 day')) ?>" required>
           </div>
           <div class="mb-3">
             <label class="form-label small fw-semibold">Tanggal Selesai</label>
-            <input class="form-control" type="date" name="tanggal-akhir" required>
+            <input class="form-control" type="date" name="tanggal-akhir" value="<?= date('Y-m-d') ?>" required>
           </div>
           <button class="btn btn-primary w-100" type="submit" name="generate-transaksi">
             <i class="fa-solid fa-file-lines me-1"></i> Buat Laporan Transaksi

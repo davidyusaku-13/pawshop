@@ -187,9 +187,6 @@ include __DIR__ . '/../includes/admin-header.php';
             <i class="fa-solid fa-chevron-right text-muted small"></i>
           </a>
         </div>
-        <div class="alert alert-light border mb-0 text-center small text-muted mt-3">
-          Sistem berjalan dalam mode produksi container PHP 8.2 & MariaDB
-        </div>
       </div>
     </div>
   </div>
