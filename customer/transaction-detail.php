@@ -103,6 +103,5 @@ include __DIR__ . '/../includes/navbar.php';
 </main>
 
 <?php
-include __DIR__ . '/../includes/cart.php';
 include __DIR__ . '/../includes/footer.php';
 ?>

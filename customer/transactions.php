@@ -141,6 +141,5 @@ include __DIR__ . '/../includes/navbar.php';
 </script>
 
 <?php
-include __DIR__ . '/../includes/cart.php';
 include __DIR__ . '/../includes/footer.php';
 ?>
