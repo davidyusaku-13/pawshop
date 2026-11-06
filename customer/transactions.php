@@ -30,7 +30,7 @@ include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/navbar.php';
 ?>
 
-<main class="container py-4">
+<main class="container py-5">
   <!-- Page Header -->
   <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
     <div>

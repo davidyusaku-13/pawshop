@@ -21,7 +21,7 @@ include __DIR__ . '/../includes/header.php';
 include __DIR__ . '/../includes/navbar.php';
 ?>
 
-<main class="container py-4">
+<main class="container py-5">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="fw-bold">Rincian Transaksi #<?= htmlspecialchars($order['id']) ?></h3>
     <a href="<?= BASE_URL ?>customer/transactions.php" class="btn btn-outline-secondary btn-sm">

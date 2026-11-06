@@ -2,6 +2,7 @@
   --pawshop-primary: #e0b828;
   --pawshop-primary-hover: #cfa517;
   --pawshop-dark: #293144;
+  --pawshop-navy: #293144;
   --pawshop-dark-hover: #1e2433;
   --pawshop-sidebar: #222938;
   --pawshop-sidebar-active: #2e374b;
@@ -195,11 +196,15 @@ body {
 }
 
 .category-chip.active {
-  color: #ffffff;
-  background-color: var(--pawshop-navy);
-  border-color: var(--pawshop-navy);
+  color: #ffffff !important;
+  background-color: var(--pawshop-dark) !important;
+  border-color: var(--pawshop-dark) !important;
   font-weight: 600;
-  box-shadow: 0 4px 10px rgba(43, 58, 74, 0.2);
+  box-shadow: 0 4px 10px rgba(41, 49, 68, 0.25);
+}
+
+.category-chip.active i {
+  color: var(--pawshop-primary) !important;
 }
 
 .trust-badge-card {

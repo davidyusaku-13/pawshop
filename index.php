@@ -103,7 +103,7 @@ include __DIR__ . '/includes/navbar.php';
   </div>
 
   <!-- Product Catalog Section -->
-  <div class="container mt-5">
+  <div class="container my-5 pb-5">
     <!-- Header & Category Filter Chips -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
       <div>

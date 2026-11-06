@@ -1,6 +1,6 @@
 <?php require __DIR__ . '/cart.php'; ?>
 
-  <footer class="mt-auto py-4 bg-white border-top text-center text-muted small">
+  <footer class="mt-auto py-5 bg-white border-top text-center text-muted small">
     <div class="container d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
       <div class="d-flex align-items-center gap-2">
         <img src="<?= BASE_URL ?>assets/images/brand/logo.png" height="24" alt="Pawshop">
