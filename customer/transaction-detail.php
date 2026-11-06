@@ -72,8 +72,12 @@ include __DIR__ . '/../includes/navbar.php';
       <div class="card shadow-sm mb-4">
         <div class="card-header bg-white fw-bold">Informasi Pembelian</div>
         <div class="card-body">
+          <?php
+          $statusId = (int)$order['status_id'];
+          $badgeClass = ($statusId === 1) ? 'bg-warning text-dark' : (($statusId === 4) ? 'bg-success' : 'bg-primary');
+          ?>
           <p class="mb-1 text-muted small">Status Pesanan:</p>
-          <span class="badge bg-warning text-dark mb-3 fs-6"><?= htmlspecialchars($order['status_name']) ?></span>
+          <span class="badge <?= $badgeClass ?> mb-3 px-3 py-2 rounded-pill small"><?= htmlspecialchars($order['status_name']) ?></span>
 
           <p class="mb-1 text-muted small">Waktu Pemesanan:</p>
           <p class="fw-semibold mb-3"><?= htmlspecialchars($order['timestamp']) ?></p>
