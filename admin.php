@@ -169,11 +169,12 @@ $minStok = 20;
           <h1 class="font-semibold text-lg">PEMASUKAN (HARIAN)</h1>
           <?php
           $datenow = date("d-m-Y");
-          $sql = "SELECT SUM(total_amount) AS harian FROM transaksi WHERE timestamp='$datenow'";
+          $sql = "SELECT COALESCE(SUM(total_amount), 0) AS harian FROM transaksi WHERE timestamp='$datenow'";
           $result = $conn->query($sql);
-          if ($result->num_rows > 0) {
+          $harian = 0;
+          if ($result && $result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
-              $harian = $row['harian'];
+              $harian = (float)($row['harian'] ?? 0);
             }
           }
           ?>
@@ -549,7 +550,8 @@ $minStok = 20;
         $result = $conn->query($sql);
         if ($result->num_rows > 0) {
           while ($row = $result->fetch_assoc()) {
-            $persentase = $row['total_sold'] / ($row['total_stok'] + $row['total_sold']) * 100;
+            $total_all = $row['total_stok'] + $row['total_sold'];
+            $persentase = $total_all > 0 ? ($row['total_sold'] / $total_all * 100) : 0;
         ?>
             <div>
               <h1><?= $row['name'] ?></h1>
