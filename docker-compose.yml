@@ -24,7 +24,7 @@ services:
       - "3306:3306"
     volumes:
       - pawshop_db_data:/var/lib/mysql
-      - ./pawshop.sql:/docker-entrypoint-initdb.d/01-pawshop.sql:ro,z
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-pawshop.sql:ro,z
 
   phpmyadmin:
     image: docker.io/phpmyadmin/phpmyadmin:latest
