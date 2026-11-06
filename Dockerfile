@@ -3,8 +3,8 @@ FROM php:8.2-apache
 # Install mysqli and pdo_mysql extensions
 RUN docker-php-ext-install mysqli pdo_mysql && docker-php-ext-enable mysqli pdo_mysql
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# Enable Apache mod_rewrite, mod_headers, and mod_expires for caching & clean URLs
+RUN a2enmod rewrite headers expires deflate
 
 WORKDIR /var/www/html
 

@@ -24,23 +24,23 @@ include __DIR__ . '/includes/navbar.php';
   <div id="carouselPawshop" class="carousel slide container mt-3" data-bs-ride="carousel" data-bs-touch="true">
     <div class="carousel-inner rounded shadow-sm">
       <div class="carousel-item active">
-        <img src="<?= BASE_URL ?>assets/images/carousel1.jpg" class="d-block w-100 img-fluid" alt="Promo 1">
+        <img src="<?= BASE_URL ?>assets/images/carousel1.jpg" class="d-block w-100 img-fluid" alt="Promo 1" width="1600" height="800" fetchpriority="high">
         <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50 rounded">
           <h3>Selamat datang di Pawshop</h3>
           <p>Menjual beragam kebutuhan kucing terlengkap dan terpercaya</p>
         </div>
       </div>
       <div class="carousel-item">
-        <img src="<?= BASE_URL ?>assets/images/carousel2.jpg" class="d-block w-100 img-fluid" alt="Promo 2">
+        <img src="<?= BASE_URL ?>assets/images/carousel2.jpg" class="d-block w-100 img-fluid" alt="Promo 2" width="1600" height="800" loading="lazy">
       </div>
       <div class="carousel-item">
-        <img src="<?= BASE_URL ?>assets/images/carousel3.jpg" class="d-block w-100 img-fluid" alt="Promo 3">
+        <img src="<?= BASE_URL ?>assets/images/carousel3.jpg" class="d-block w-100 img-fluid" alt="Promo 3" width="1600" height="800" loading="lazy">
       </div>
       <div class="carousel-item">
-        <img src="<?= BASE_URL ?>assets/images/carousel4.jpg" class="d-block w-100 img-fluid" alt="Promo 4">
+        <img src="<?= BASE_URL ?>assets/images/carousel4.jpg" class="d-block w-100 img-fluid" alt="Promo 4" width="1600" height="800" loading="lazy">
       </div>
       <div class="carousel-item">
-        <img src="<?= BASE_URL ?>assets/images/carousel5.jpg" class="d-block w-100 img-fluid" alt="Promo 5">
+        <img src="<?= BASE_URL ?>assets/images/carousel5.jpg" class="d-block w-100 img-fluid" alt="Promo 5" width="1600" height="800" loading="lazy">
       </div>
     </div>
     <button class="carousel-control-prev" type="button" data-bs-target="#carouselPawshop" data-bs-slide="prev">
@@ -80,7 +80,7 @@ include __DIR__ . '/includes/navbar.php';
         <?php foreach ($products as $row): ?>
           <div class="col">
             <div class="card h-100 shadow-sm border-0">
-              <img src="<?= BASE_URL ?>assets/images/<?= htmlspecialchars($row['gambar'] ?: 'x.jpg') ?>" class="card-img-top object-fit-cover" style="height: 220px;" alt="<?= htmlspecialchars($row['nama_produk']) ?>" onerror="this.src='<?= BASE_URL ?>assets/images/brand/logo.png'">
+              <img src="<?= BASE_URL ?>assets/images/<?= htmlspecialchars($row['gambar'] ?: 'x.jpg') ?>" class="card-img-top object-fit-cover" style="height: 220px;" alt="<?= htmlspecialchars($row['nama_produk']) ?>" loading="lazy" width="300" height="220" onerror="this.src='<?= BASE_URL ?>assets/images/brand/logo.png'">
               <div class="card-body d-flex flex-column justify-content-between">
                 <div>
                   <span class="badge bg-light text-muted border mb-2"><?= htmlspecialchars($row['kategori_name'] ?? 'Umum') ?></span>

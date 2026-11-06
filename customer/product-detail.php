@@ -32,7 +32,7 @@ include __DIR__ . '/../includes/navbar.php';
 
   <div class="row g-5 align-items-center">
     <div class="col-md-6 text-center">
-      <img src="<?= BASE_URL ?>assets/images/<?= htmlspecialchars($product['gambar'] ?: 'x.jpg') ?>" class="img-fluid rounded shadow-sm" alt="<?= htmlspecialchars($product['nama_produk']) ?>" style="max-height: 450px; object-fit: contain;" onerror="this.src='<?= BASE_URL ?>assets/images/brand/logo.png'">
+      <img src="<?= BASE_URL ?>assets/images/<?= htmlspecialchars($product['gambar'] ?: 'x.jpg') ?>" class="img-fluid rounded shadow-sm" alt="<?= htmlspecialchars($product['nama_produk']) ?>" style="max-height: 450px; object-fit: contain;" width="500" height="450" fetchpriority="high" onerror="this.src='<?= BASE_URL ?>assets/images/brand/logo.png'">
     </div>
     <div class="col-md-6">
       <span class="badge bg-secondary mb-2"><?= htmlspecialchars($product['kategori'] ?? 'Umum') ?></span>
