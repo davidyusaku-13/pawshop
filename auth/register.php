@@ -16,17 +16,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     $phone_number = trim($_POST['phone_number'] ?? '');
 
     if (empty($username) || empty($password) || empty($repassword) || empty($phone_number)) {
-        $status = '<div class="alert alert-danger" role="alert">Harap lengkapi semua kolom pendaftaran!</div>';
+        $status = '<div class="alert alert-danger py-2 small" role="alert"><i class="fa-solid fa-circle-exclamation me-1"></i> Harap lengkapi semua kolom pendaftaran!</div>';
     } elseif ($password !== $repassword) {
-        $status = '<div class="alert alert-danger" role="alert">Konfirmasi password tidak cocok!</div>';
+        $status = '<div class="alert alert-danger py-2 small" role="alert"><i class="fa-solid fa-circle-exclamation me-1"></i> Konfirmasi kata sandi tidak cocok!</div>';
     } elseif (strlen($password) < 4) {
-        $status = '<div class="alert alert-danger" role="alert">Password minimal 4 karakter!</div>';
+        $status = '<div class="alert alert-danger py-2 small" role="alert"><i class="fa-solid fa-circle-exclamation me-1"></i> Kata sandi minimal 4 karakter!</div>';
     } else {
         if (AuthService::register($username, $password, $phone_number, 'user')) {
             flash('success', 'Pendaftaran akun berhasil! Silakan masuk dengan akun baru Anda.');
             redirect('auth/login.php');
         } else {
-            $status = '<div class="alert alert-danger" role="alert">Username sudah terdaftar. Silakan pilih username lain!</div>';
+            $status = '<div class="alert alert-danger py-2 small" role="alert"><i class="fa-solid fa-circle-exclamation me-1"></i> Username sudah terdaftar. Silakan pilih username lain!</div>';
         }
     }
 }
@@ -45,69 +45,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
   
+  <!-- Stylesheets -->
   <link href="<?= BASE_URL ?>assets/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/sign-in.css">
   <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
   <script src="https://kit.fontawesome.com/ec712a3d01.js" crossorigin="anonymous"></script>
-  <style>
-    .bg-image {
-      background: url('<?= BASE_URL ?>assets/images/carousel2.jpg');
-      background-position: center;
-      background-size: cover;
-      background-repeat: no-repeat;
-    }
-  </style>
 </head>
 
-<body class="d-flex align-items-center py-4 bg-body-tertiary">
-  <main class="w-100 m-auto form-signin">
-    <div class="row shadow-sm rounded-4 overflow-hidden bg-white border">
-      <div class="col-md-5 d-none d-md-block bg-image"></div>
-      <div class="col-md-7 p-4 p-lg-5">
-        <form action="" method="POST">
-          <div class="d-flex justify-content-center mb-3">
-            <a href="<?= BASE_URL ?>index.php">
-              <img src="<?= BASE_URL ?>assets/images/brand/logo.png" alt="Pawshop Logo" width="160" />
-            </a>
+<body>
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <div class="row g-0">
+        <!-- Visual Banner Side -->
+        <div class="col-md-5 d-none d-md-block">
+          <div class="auth-banner h-100">
+            <div>
+              <span class="brand-badge">
+                <i class="fa-solid fa-paw"></i> Pawshop Pet Care
+              </span>
+            </div>
+            <div>
+              <p class="banner-quote mb-2">Bergabunglah dengan ribuan pemilik kucing bahagia di Pawshop.</p>
+              <span class="small opacity-75">Dapatkan penawaran makanan & mainan kucing terbaik</span>
+            </div>
+            <div class="small opacity-50">
+              &copy; <?= date('Y') ?> Pawshop Indonesia
+            </div>
           </div>
+        </div>
 
-          <h2 class="h4 mb-2 fw-bold text-center">Buat Akun Pelanggan</h2>
-          <p class="text-muted small text-center mb-4">Daftar untuk menikmati belanja kebutuhan anabul lebih mudah</p>
+        <!-- Form Side -->
+        <div class="col-md-7">
+          <div class="auth-form-side">
+            <div class="mb-4">
+              <a href="<?= BASE_URL ?>index.php">
+                <img src="<?= BASE_URL ?>assets/images/brand/logo.png" height="38" alt="Pawshop Logo">
+              </a>
+              <h3 class="fw-bold text-dark mt-3 mb-1">Buat Akun Baru</h3>
+              <p class="text-muted small mb-0">Daftar untuk mulai berbelanja kebutuhan kucing Anda.</p>
+            </div>
 
-          <?= $status; ?>
+            <?= $status; ?>
 
-          <div class="form-floating mb-3">
-            <input type="text" class="form-control" id="floatingUsername" name="username" placeholder="Username" required value="<?= htmlspecialchars($_POST['username'] ?? '') ?>" />
-            <label for="floatingUsername"><i class="fa-solid fa-user me-1 text-muted"></i> Username</label>
+            <form action="" method="POST">
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="floatingUsername" name="username" placeholder="Username" required value="<?= htmlspecialchars($_POST['username'] ?? '') ?>">
+                <label for="floatingUsername"><i class="fa-solid fa-user text-muted me-1"></i> Username</label>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input type="tel" class="form-control" id="floatingPhone" name="phone_number" placeholder="Nomor Telepon" required value="<?= htmlspecialchars($_POST['phone_number'] ?? '') ?>">
+                <label for="floatingPhone"><i class="fa-solid fa-phone text-muted me-1"></i> Nomor WhatsApp / HP</label>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password" required>
+                <label for="floatingPassword"><i class="fa-solid fa-lock text-muted me-1"></i> Kata Sandi</label>
+              </div>
+
+              <div class="form-floating mb-4">
+                <input type="password" class="form-control" id="floatingRepassword" name="repassword" placeholder="Ulangi Password" required>
+                <label for="floatingRepassword"><i class="fa-solid fa-shield-halved text-muted me-1"></i> Konfirmasi Kata Sandi</label>
+              </div>
+
+              <button class="btn btn-pawshop w-100 py-2 fs-6 shadow-sm mb-3" type="submit" name="submit">
+                <i class="fa-solid fa-user-plus me-1"></i> Daftar Sekarang
+              </button>
+            </form>
+
+            <div class="text-center pt-2 border-top">
+              <p class="text-muted small mb-1">
+                Sudah memiliki akun? <a href="<?= BASE_URL ?>auth/login.php" class="fw-bold text-dark text-decoration-none">Masuk di sini</a>
+              </p>
+              <a href="<?= BASE_URL ?>index.php" class="text-muted small text-decoration-none">
+                <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Beranda Katalog
+              </a>
+            </div>
           </div>
-
-          <div class="form-floating mb-3">
-            <input type="tel" class="form-control" id="floatingPhone" name="phone_number" placeholder="Nomor Telepon" required value="<?= htmlspecialchars($_POST['phone_number'] ?? '') ?>" />
-            <label for="floatingPhone"><i class="fa-solid fa-phone me-1 text-muted"></i> Nomor WhatsApp / HP</label>
-          </div>
-
-          <div class="form-floating mb-3">
-            <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password" required />
-            <label for="floatingPassword"><i class="fa-solid fa-lock me-1 text-muted"></i> Password</label>
-          </div>
-
-          <div class="form-floating mb-4">
-            <input type="password" class="form-control" id="floatingRepassword" name="repassword" placeholder="Ulangi Password" required />
-            <label for="floatingRepassword"><i class="fa-solid fa-shield-check me-1 text-muted"></i> Konfirmasi Password</label>
-          </div>
-
-          <button class="btn btn-pawshop w-100 py-2 fs-6 shadow-sm" type="submit" name="submit">
-            <i class="fa-solid fa-user-plus me-1"></i> Daftar Sekarang
-          </button>
-        </form>
-
-        <div class="mt-4 text-center">
-          <p class="mb-1 text-muted small">Sudah memiliki akun? <a href="<?= BASE_URL ?>auth/login.php" class="fw-bold text-decoration-none text-dark">Masuk di sini</a></p>
-          <a href="<?= BASE_URL ?>index.php" class="text-muted small text-decoration-none">&larr; Kembali ke Katalog Utama</a>
         </div>
       </div>
     </div>
-  </main>
+  </div>
 
   <script src="<?= BASE_URL ?>assets/js/bootstrap.bundle.min.js"></script>
 </body>
