@@ -32,15 +32,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
 }
 ?>
 <!doctype html>
-<html lang="en">
+<html lang="id">
 
 <head>
   <title>Pawshop | Masuk</title>
   <link rel="icon" type="image/x-icon" href="<?= BASE_URL ?>assets/images/brand/logo-title.png">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  
+  <!-- Google Fonts: Montserrat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
+  
   <link href="<?= BASE_URL ?>assets/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/sign-in.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>assets/css/style.css">
+  <script src="https://kit.fontawesome.com/ec712a3d01.js" crossorigin="anonymous"></script>
   <style>
     .bg-image {
       background: url('<?= BASE_URL ?>assets/images/carousel2.jpg');
@@ -53,43 +61,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
 
 <body class="d-flex align-items-center py-4 bg-body-tertiary">
   <main class="w-100 m-auto form-signin">
-    <div class="row shadow rounded">
-      <div class="col d-none d-md-block bg-image rounded-start"></div>
-      <div class="col p-4">
+    <div class="row shadow-sm rounded-4 overflow-hidden bg-white border">
+      <div class="col-md-5 d-none d-md-block bg-image"></div>
+      <div class="col-md-7 p-4 p-lg-5">
         <form action="" method="POST">
-          <div class="d-flex justify-content-center">
+          <div class="d-flex justify-content-center mb-3">
             <a href="<?= BASE_URL ?>index.php">
-              <img class="mb-4" src="<?= BASE_URL ?>assets/images/brand/logo.png" alt="Pawshop Logo" width="150" />
+              <img src="<?= BASE_URL ?>assets/images/brand/logo.png" alt="Pawshop Logo" width="160" />
             </a>
           </div>
+
+          <h2 class="h4 mb-2 fw-bold text-center">Masuk ke Akun</h2>
+          <p class="text-muted small text-center mb-4">Akses keranjang dan pantau riwayat belanja Anda</p>
 
           <?= render_flash() ?>
           <?php if (!empty($error)): ?>
             <div class="alert alert-danger" role="alert"><?= htmlspecialchars($error) ?></div>
           <?php endif; ?>
 
-          <h1 class="h3 mb-3 fw-bold text-center">Masuk ke Akun</h1>
-
-          <div class="form-floating mb-2">
+          <div class="form-floating mb-3">
             <input type="text" class="form-control" id="floatingInput" name="username" placeholder="Username" required value="<?= htmlspecialchars($_POST['username'] ?? '') ?>" />
-            <label for="floatingInput">Username</label>
+            <label for="floatingInput"><i class="fa-solid fa-user me-1 text-muted"></i> Username</label>
           </div>
           <div class="form-floating mb-3">
             <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password" required />
-            <label for="floatingPassword">Password</label>
+            <label for="floatingPassword"><i class="fa-solid fa-lock me-1 text-muted"></i> Password</label>
           </div>
 
           <div class="form-check text-start my-3">
             <input class="form-check-input" type="checkbox" value="yes" id="flexCheckDefault" name="remember-me" />
-            <label class="form-check-label" for="flexCheckDefault">
-              Ingat saya
+            <label class="form-check-label text-muted small" for="flexCheckDefault">
+              Ingat sesi saya di perangkat ini
             </label>
           </div>
-          <button class="btn btn-warning w-100 py-2 fw-semibold" type="submit" name="submit">Masuk</button>
+          <button class="btn btn-pawshop w-100 py-2 fs-6 shadow-sm" type="submit" name="submit">
+            <i class="fa-solid fa-right-to-bracket me-1"></i> Masuk
+          </button>
         </form>
 
-        <p class="mt-4 mb-1 text-center">Belum punya akun? <a href="<?= BASE_URL ?>auth/register.php" class="text-decoration-none fw-bold">Daftar sekarang</a></p>
-        <p class="mt-1 text-center"><a href="<?= BASE_URL ?>index.php" class="text-muted small text-decoration-none">&larr; Kembali ke Katalog</a></p>
+        <div class="mt-4 text-center">
+          <p class="mb-1 text-muted small">Belum memiliki akun? <a href="<?= BASE_URL ?>auth/register.php" class="fw-bold text-decoration-none text-dark">Daftar sekarang</a></p>
+          <a href="<?= BASE_URL ?>index.php" class="text-muted small text-decoration-none">&larr; Kembali ke Katalog Utama</a>
+        </div>
       </div>
     </div>
   </main>

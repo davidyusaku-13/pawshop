@@ -1,30 +1,184 @@
-/* .btn-primary {
-  background-color: #725f63 !important;
-  border-color: #725f63 !important;
-  color: white !important;
+:root {
+  --pawshop-primary: #e0b828;
+  --pawshop-primary-hover: #cfa517;
+  --pawshop-dark: #293144;
+  --pawshop-dark-hover: #1e2433;
+  --pawshop-sidebar: #222938;
+  --pawshop-sidebar-active: #2e374b;
+  --pawshop-sidebar-text: #9aa8bd;
+  --pawshop-sidebar-hover: #2b3447;
+  --pawshop-blue: #20639b;
+  --pawshop-coral: #ed553b;
+  --pawshop-teal: #3caea3;
+  --pawshop-yellow: #f6d55c;
+  --pawshop-bg: #f8f9fc;
 }
 
-.active {
-  background-color: #725f63 !important;
-  border-color: #725f63 !important;
-  color: white !important;
+body {
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #333d47;
+  background-color: var(--pawshop-bg);
 }
 
-ul li a:focus {
-  background-color: #725f63 !important;
-  border-color: #725f63 !important;
-  color: white !important;
+/* BRAND BUTTONS */
+.btn-pawshop {
+  background-color: var(--pawshop-primary);
+  border-color: var(--pawshop-primary);
+  color: #1a202c;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
 }
 
-.page-link {
-  background-color: white;
-  color: #725f63;
+.btn-pawshop:hover,
+.btn-pawshop:focus,
+.btn-pawshop:active {
+  background-color: var(--pawshop-primary-hover) !important;
+  border-color: var(--pawshop-primary-hover) !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 10px rgba(224, 184, 40, 0.3);
 }
 
-.page-link:hover {
-  color: #725f63;
+.btn-outline-pawshop {
+  color: #94710b;
+  border-color: var(--pawshop-primary);
+  font-weight: 600;
 }
 
-a {
-  color: #725f63;
-} */
+.btn-outline-pawshop:hover {
+  background-color: var(--pawshop-primary);
+  border-color: var(--pawshop-primary);
+  color: #000000;
+}
+
+/* NAVBAR STYLING */
+.navbar {
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.navbar-brand img {
+  transition: transform 0.2s ease;
+}
+
+.navbar-brand:hover img {
+  transform: scale(1.03);
+}
+
+/* CARDS */
+.card {
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06) !important;
+}
+
+/* ADMIN SIDEBAR LAYOUT */
+.admin-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: 260px;
+  background-color: var(--pawshop-sidebar);
+  color: var(--pawshop-sidebar-text);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  z-index: 1030;
+}
+
+.admin-sidebar .sidebar-brand {
+  padding: 1.5rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-sidebar .nav-link {
+  color: var(--pawshop-sidebar-text);
+  padding: 0.75rem 1.25rem;
+  font-weight: 500;
+  font-size: 0.92rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  border-radius: 6px;
+  margin: 0.2rem 0.75rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.admin-sidebar .nav-link:hover {
+  background-color: var(--pawshop-sidebar-hover);
+  color: #ffffff;
+}
+
+.admin-sidebar .nav-link.active {
+  background-color: var(--pawshop-primary);
+  color: #1a202c !important;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(224, 184, 40, 0.25);
+}
+
+.admin-sidebar .nav-link i {
+  font-size: 1.05rem;
+  width: 22px;
+  text-align: center;
+}
+
+.admin-content {
+  flex-grow: 1;
+  background-color: #f4f6fa;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-topbar {
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+  padding: 0.85rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* STAT CARDS */
+.stat-card {
+  border-radius: 12px;
+  border: none;
+  color: #ffffff;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card.bg-stat-blue {
+  background: linear-gradient(135deg, #1d5f94 0%, #20639b 100%);
+}
+
+.stat-card.bg-stat-coral {
+  background: linear-gradient(135deg, #dc4931 0%, #ed553b 100%);
+}
+
+.stat-card.bg-stat-teal {
+  background: linear-gradient(135deg, #2e968c 0%, #3caea3 100%);
+}
+
+.stat-card.bg-stat-gold {
+  background: linear-gradient(135deg, #d4a71b 0%, #e0b828 100%);
+  color: #1a202c;
+}
+
+@media (max-width: 991.98px) {
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: -260px;
+  }
+  .admin-sidebar.show {
+    left: 0;
+  }
+}

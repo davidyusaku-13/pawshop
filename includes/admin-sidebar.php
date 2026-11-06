@@ -1,66 +1,84 @@
 <?php
-$currentPage = basename($_SERVER['PHP_SELF']);
+$cur = basename($_SERVER['PHP_SELF']);
+$adminUser = \App\AuthService::getCurrentUser();
 ?>
-<!-- SIDEBAR -->
-<div class="bg-pawshop-kiri text-pawshop-tulisan-kiri min-h-screen basis-1/6 flex flex-col justify-between items-center text-center">
-  <div class="mt-8 w-full flex flex-col items-center text-center">
-    <a href="<?= BASE_URL ?>index.php">
-      <svg class="w-1/2 mx-auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor">
-        <path d="M399 384.2C376.9 345.8 335.4 320 288 320H224c-47.4 0-88.9 25.8-111 64.2c35.2 39.2 86.2 63.8 143 63.8s107.8-24.7 143-63.8zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm256 16a72 72 0 1 0 0-144 72 72 0 1 0 0 144z" />
-      </svg>
+<!-- ADMIN SIDEBAR -->
+<aside class="admin-sidebar shadow" id="adminSidebar">
+  <div class="sidebar-brand d-flex align-items-center justify-content-between">
+    <a href="<?= BASE_URL ?>admin/index.php" class="d-flex align-items-center gap-2 text-decoration-none">
+      <img src="<?= BASE_URL ?>assets/images/brand/logo.png" height="32" alt="Pawshop">
+      <span class="badge bg-danger fs-8">ADMIN</span>
     </a>
-    <span class="mt-4 font-bold">ADMIN</span>
+    <button class="btn btn-sm btn-outline-light d-lg-none" type="button" id="sidebarCloseBtn">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
   </div>
-  <div class="w-full">
-    <nav>
-      <ul class="flex flex-col text-start">
-        <li class="px-8 py-2 hover:bg-pawshop-background <?= ($currentPage == 'index.php') ? 'bg-pawshop-background text-pawshop-kiri font-bold' : '' ?>">
-          <a class="flex flex-row justify-evenly items-center" href="<?= BASE_URL ?>admin/index.php">
-            <i class="basis-1/4 fa-solid fa-house"></i>
-            <span class="basis-3/4">Dasbor</span>
-          </a>
-        </li>
-        <li class="px-8 py-2 hover:bg-pawshop-background <?= ($currentPage == 'products.php') ? 'bg-pawshop-background text-pawshop-kiri font-bold' : '' ?>">
-          <a class="flex flex-row justify-evenly items-center" href="<?= BASE_URL ?>admin/products.php">
-            <img src="<?= BASE_URL ?>assets/images/brand/paw.png" class="w-4" alt="">
-            <span class="basis-3/4">Produk</span>
-          </a>
-        </li>
-        <li class="px-8 py-2 hover:bg-pawshop-background <?= ($currentPage == 'categories.php') ? 'bg-pawshop-background text-pawshop-kiri font-bold' : '' ?>">
-          <a class="flex flex-row justify-evenly items-center" href="<?= BASE_URL ?>admin/categories.php">
-            <i class="basis-1/4 fa-solid fa-tags"></i>
-            <span class="basis-3/4">Kategori</span>
-          </a>
-        </li>
-        <li class="px-8 py-2 hover:bg-pawshop-background <?= ($currentPage == 'statuses.php') ? 'bg-pawshop-background text-pawshop-kiri font-bold' : '' ?>">
-          <a class="flex flex-row justify-evenly items-center" href="<?= BASE_URL ?>admin/statuses.php">
-            <i class="basis-1/4 fa-solid fa-list-check"></i>
-            <span class="basis-3/4">Status</span>
-          </a>
-        </li>
-        <li class="px-8 py-2 hover:bg-pawshop-background <?= ($currentPage == 'transactions.php') ? 'bg-pawshop-background text-pawshop-kiri font-bold' : '' ?>">
-          <a class="flex flex-row justify-evenly items-center" href="<?= BASE_URL ?>admin/transactions.php">
-            <i class="basis-1/4 fa-solid fa-receipt"></i>
-            <span class="basis-3/4">Transaksi</span>
-          </a>
-        </li>
-        <li class="px-8 py-2 hover:bg-pawshop-background <?= ($currentPage == 'users.php') ? 'bg-pawshop-background text-pawshop-kiri font-bold' : '' ?>">
-          <a class="flex flex-row justify-evenly items-center" href="<?= BASE_URL ?>admin/users.php">
-            <i class="basis-1/4 fa-solid fa-user"></i>
-            <span class="basis-3/4">Pengguna</span>
-          </a>
-        </li>
-        <li class="px-8 py-2 hover:bg-pawshop-background <?= ($currentPage == 'reports.php') ? 'bg-pawshop-background text-pawshop-kiri font-bold' : '' ?>">
-          <a class="flex flex-row justify-evenly items-center" href="<?= BASE_URL ?>admin/reports.php">
-            <i class="basis-1/4 fa-solid fa-chart-simple"></i>
-            <span class="basis-3/4">Laporan</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
+
+  <div class="px-3 py-3 border-bottom border-secondary border-opacity-25 d-flex align-items-center gap-2">
+    <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 38px; height: 38px;">
+      <i class="fa-solid fa-user-shield"></i>
+    </div>
+    <div class="overflow-hidden">
+      <div class="text-white fw-bold text-truncate small"><?= htmlspecialchars($adminUser['username'] ?? 'Administrator') ?></div>
+      <div class="text-white-50" style="font-size: 0.75rem;">Pengelola Toko</div>
+    </div>
   </div>
-  <div class="mb-16">
-    <a class="bg-pawshop-gatau px-8 py-2 text-pawshop-kiri font-bold rounded" href="<?= BASE_URL ?>auth/logout.php">LOGOUT</a>
+
+  <nav class="mt-3 flex-grow-1">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link <?= ($cur == 'index.php') ? 'active' : '' ?>" href="<?= BASE_URL ?>admin/index.php">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Dasbor</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <?= ($cur == 'transactions.php') ? 'active' : '' ?>" href="<?= BASE_URL ?>admin/transactions.php">
+          <i class="fa-solid fa-receipt"></i>
+          <span>Transaksi</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <?= ($cur == 'products.php') ? 'active' : '' ?>" href="<?= BASE_URL ?>admin/products.php">
+          <i class="fa-solid fa-box-open"></i>
+          <span>Produk</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <?= ($cur == 'categories.php') ? 'active' : '' ?>" href="<?= BASE_URL ?>admin/categories.php">
+          <i class="fa-solid fa-tags"></i>
+          <span>Kategori</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <?= ($cur == 'statuses.php') ? 'active' : '' ?>" href="<?= BASE_URL ?>admin/statuses.php">
+          <i class="fa-solid fa-list-check"></i>
+          <span>Status</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <?= ($cur == 'users.php') ? 'active' : '' ?>" href="<?= BASE_URL ?>admin/users.php">
+          <i class="fa-solid fa-users"></i>
+          <span>Pengguna</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link <?= ($cur == 'reports.php') ? 'active' : '' ?>" href="<?= BASE_URL ?>admin/reports.php">
+          <i class="fa-solid fa-file-lines"></i>
+          <span>Laporan</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="p-3 border-top border-secondary border-opacity-25 mt-auto">
+    <a href="<?= BASE_URL ?>index.php" target="_blank" class="nav-link mb-2 text-warning d-flex align-items-center gap-2">
+      <i class="fa-solid fa-store"></i>
+      <span>Buka Toko</span>
+    </a>
+    <a href="<?= BASE_URL ?>auth/logout.php" class="nav-link text-danger d-flex align-items-center gap-2">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i>
+      <span>Keluar</span>
+    </a>
   </div>
-</div>
-<!-- SIDEBAR -->
+</aside>
