@@ -5,11 +5,11 @@ $adminUser = \App\AuthService::getCurrentUser();
 <!-- ADMIN SIDEBAR -->
 <aside class="admin-sidebar shadow" id="adminSidebar">
   <div class="sidebar-brand d-flex align-items-center justify-content-between">
-    <a href="<?= BASE_URL ?>admin/index.php" class="d-flex align-items-center gap-2 text-decoration-none">
-      <img src="<?= BASE_URL ?>assets/images/brand/logo.png" height="32" alt="Pawshop">
-      <span class="badge bg-danger fs-8">ADMIN</span>
+    <a href="<?= BASE_URL ?>admin/index.php" class="d-flex align-items-center gap-2 text-decoration-none text-nowrap">
+      <img src="<?= BASE_URL ?>assets/images/brand/logo.png" style="height: 25px; max-width: 125px; object-fit: contain;" alt="Pawshop">
+      <span class="badge bg-danger text-uppercase px-2 py-1 flex-shrink-0" style="font-size: 0.62rem; letter-spacing: 0.5px; font-weight: 700;">ADMIN</span>
     </a>
-    <button class="btn btn-sm btn-outline-light d-lg-none" type="button" id="sidebarCloseBtn">
+    <button class="btn btn-sm btn-outline-light d-lg-none" type="button" id="sidebarCloseBtn" aria-label="Tutup Menu">
       <i class="fa-solid fa-xmark"></i>
     </button>
   </div>
