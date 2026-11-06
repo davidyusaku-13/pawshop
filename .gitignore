@@ -1,2 +1,7 @@
 pawshop.rar
 pawshop.zip
+composer.phar
+/vendor/
+.phpunit.cache/
+.phpunit.result.cache
+

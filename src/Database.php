@@ -14,8 +14,12 @@ class Database
     private ?mysqli $mysqli = null;
     private bool $usePdo = false;
 
-    private function __construct()
+    public function __construct(bool $connect = true)
     {
+        if (!$connect) {
+            return;
+        }
+
         $host = getenv('DB_HOST') ?: 'localhost';
         $user = getenv('DB_USER') ?: 'root';
         $pass = getenv('DB_PASS') !== false ? getenv('DB_PASS') : '';
@@ -44,14 +48,14 @@ class Database
         if (extension_loaded('mysqli')) {
             $this->mysqli = new mysqli($host, $user, $pass, $name, $port);
             if ($this->mysqli->connect_error) {
-                die("Database connection failed: " . $this->mysqli->connect_error);
+                throw new \RuntimeException("Database connection failed: " . $this->mysqli->connect_error);
             }
             $this->mysqli->set_charset("utf8mb4");
             $this->usePdo = false;
             return;
         }
 
-        die("Database connection failed: Neither PDO (pdo_mysql) nor MySQLi extension is installed.");
+        throw new \RuntimeException("Database connection failed: Neither PDO (pdo_mysql) nor MySQLi extension is installed.");
     }
 
     public static function getInstance(): Database
@@ -62,9 +66,37 @@ class Database
         return self::$instance;
     }
 
+    public static function createWithPdo(PDO $pdo): Database
+    {
+        $db = new self(false);
+        $db->pdo = $pdo;
+        $db->usePdo = true;
+        self::$instance = $db;
+        return $db;
+    }
+
+    public static function setInstance(?Database $instance): void
+    {
+        self::$instance = $instance;
+    }
+
+    public static function reset(): void
+    {
+        self::$instance = null;
+    }
+
+    private function prepareSql(string $sql): string
+    {
+        if ($this->usePdo && $this->pdo && $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            return preg_replace('/\s+FOR\s+UPDATE\s*$/i', '', $sql);
+        }
+        return $sql;
+    }
+
     public static function query(string $sql, array $params = []): array
     {
         $db = self::getInstance();
+        $sql = $db->prepareSql($sql);
         if ($db->usePdo && $db->pdo) {
             $stmt = $db->pdo->prepare($sql);
             $stmt->execute($params);
@@ -91,6 +123,7 @@ class Database
     public static function fetchOne(string $sql, array $params = []): ?array
     {
         $db = self::getInstance();
+        $sql = $db->prepareSql($sql);
         if ($db->usePdo && $db->pdo) {
             $stmt = $db->pdo->prepare($sql);
             $stmt->execute($params);
@@ -121,6 +154,7 @@ class Database
     public static function execute(string $sql, array $params = []): bool
     {
         $db = self::getInstance();
+        $sql = $db->prepareSql($sql);
         if ($db->usePdo && $db->pdo) {
             $stmt = $db->pdo->prepare($sql);
             return $stmt->execute($params);

@@ -49,6 +49,9 @@ if (!function_exists('redirect')) {
     function redirect(string $path): void
     {
         $target = str_starts_with($path, 'http') ? $path : BASE_URL . ltrim($path, '/');
+        if (defined('PHPUNIT_RUNNING')) {
+            throw new \RuntimeException("Redirected to: {$target}");
+        }
         header("Location: {$target}");
         exit();
     }
