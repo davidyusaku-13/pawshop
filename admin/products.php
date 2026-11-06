@@ -265,7 +265,7 @@ include __DIR__ . '/../includes/admin-header.php';
       var button = $(event.relatedTarget);
       var productId = button.data('id');
       $.ajax({
-        url: '<?= BASE_URL ?>admin/ajax/product.php',
+        url: '<?= BASE_URL ?>admin/ajax/product',
         type: 'GET',
         data: { id: productId },
         dataType: 'json',
@@ -286,7 +286,7 @@ include __DIR__ . '/../includes/admin-header.php';
       var button = $(event.relatedTarget);
       var productId = button.data('id');
       $.ajax({
-        url: '<?= BASE_URL ?>admin/ajax/product.php',
+        url: '<?= BASE_URL ?>admin/ajax/product',
         type: 'GET',
         data: { id: productId },
         dataType: 'json',

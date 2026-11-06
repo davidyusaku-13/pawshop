@@ -49,7 +49,7 @@
                   <h6 class="fw-bold text-dark text-truncate mb-0 small" title="<?= htmlspecialchars($item['name']) ?>">
                     <?= htmlspecialchars($item['name']) ?>
                   </h6>
-                  <a href="<?= BASE_URL ?>cart/remove.php?product_id=<?= $item['id'] ?>" class="text-danger small opacity-75 hover-opacity-100 flex-shrink-0" title="Hapus produk">
+                  <a href="<?= BASE_URL ?>cart/remove?product_id=<?= $item['id'] ?>" class="text-danger small opacity-75 hover-opacity-100 flex-shrink-0" title="Hapus produk">
                     <i class="fa-solid fa-trash-can"></i>
                   </a>
                 </div>
@@ -58,7 +58,7 @@
                 <!-- Stepper & Subtotal -->
                 <div class="d-flex justify-content-between align-items-center mt-2">
                   <div class="cart-stepper d-flex align-items-center gap-1">
-                    <form action="<?= BASE_URL ?>cart/update.php" method="POST" class="d-flex align-items-center gap-1 cart-update-form" data-id="<?= $item['id'] ?>">
+                    <form action="<?= BASE_URL ?>cart/update" method="POST" class="d-flex align-items-center gap-1 cart-update-form" data-id="<?= $item['id'] ?>">
                       <input type="hidden" name="product_id" value="<?= $item['id'] ?>">
                       <button class="btn btn-sm btn-outline-secondary btn-step-dec" type="button" data-id="<?= $item['id'] ?>" title="Kurangi">−</button>
                       <input class="form-control form-control-sm text-center fw-bold bg-white cart-qty-val" type="number" name="quantity" min="1" max="<?= $maxStok ?>" value="<?= $item['quantity'] ?>" readonly>
@@ -82,7 +82,7 @@
         </div>
         <h6 class="fw-bold text-dark">Keranjang Belanja Kosong</h6>
         <p class="text-muted small px-3">Yuk jelajahi produk makanan & perlengkapan terbaik untuk kucing kesayangan Anda!</p>
-        <a href="<?= BASE_URL ?>index.php" class="btn btn-pawshop btn-sm rounded-pill px-4 mt-2" data-bs-dismiss="offcanvas">
+        <a href="<?= BASE_URL ?>" class="btn btn-pawshop btn-sm rounded-pill px-4 mt-2" data-bs-dismiss="offcanvas">
           Mulai Belanja
         </a>
       </div>
@@ -97,7 +97,7 @@
         <span class="fs-5 fw-bold text-danger" id="cartTotalVal"><?= format_rupiah($cartTotal) ?></span>
       </div>
 
-      <form action="<?= BASE_URL ?>cart/checkout.php" method="POST">
+      <form action="<?= BASE_URL ?>cart/checkout" method="POST">
         <div class="mb-3">
           <label class="form-label small fw-semibold text-muted">Metode Pembayaran:</label>
           <select class="form-select" name="payment_method" required>

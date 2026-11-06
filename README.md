@@ -100,7 +100,7 @@ podman-compose down
 | **Administrator** | `admin` | `admin` | Full admin panel access (`/admin`) & storefront |
 | **Customer** | `david` | `david` | Customer shopping, cart, orders, & profile |
 
-*(New customer accounts can also be created via the `/auth/register.php` page).*
+*(New customer accounts can also be created via the `/auth/register` page).*
 
 ---
 

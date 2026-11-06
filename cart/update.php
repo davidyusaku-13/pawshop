@@ -50,9 +50,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['product_id'], $_POST[
         exit();
     }
 
-    $redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : BASE_URL . 'index.php';
+    $redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : BASE_URL;
     header("Location: {$redirect}");
     exit();
 }
 
-redirect('index.php');
+redirect('');

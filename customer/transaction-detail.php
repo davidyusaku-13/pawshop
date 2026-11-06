@@ -24,7 +24,7 @@ include __DIR__ . '/../includes/navbar.php';
 <main class="container py-5">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="fw-bold">Rincian Transaksi #<?= htmlspecialchars($order['id']) ?></h3>
-    <a href="<?= BASE_URL ?>customer/transactions.php" class="btn btn-outline-secondary btn-sm">
+    <a href="<?= BASE_URL ?>customer/transactions" class="btn btn-outline-secondary btn-sm">
       <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Riwayat
     </a>
   </div>
@@ -88,7 +88,7 @@ include __DIR__ . '/../includes/navbar.php';
           <p class="mb-1 text-muted small">Nama Pelanggan:</p>
           <p class="fw-semibold mb-3"><?= htmlspecialchars($order['username']) ?></p>
 
-          <a href="<?= BASE_URL ?>customer/invoice.php?id=<?= $order['id'] ?>" target="_blank" class="btn btn-outline-primary w-100 mt-2">
+          <a href="<?= BASE_URL ?>customer/invoice?id=<?= $order['id'] ?>" target="_blank" class="btn btn-outline-primary w-100 mt-2">
             <i class="fa-solid fa-receipt me-1"></i> Cetak Bukti / Nota
           </a>
         </div>

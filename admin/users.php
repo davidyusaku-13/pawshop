@@ -211,7 +211,7 @@ include __DIR__ . '/../includes/admin-header.php';
       var button = $(event.relatedTarget);
       var userId = button.data('id');
       $.ajax({
-        url: '<?= BASE_URL ?>admin/ajax/user.php',
+        url: '<?= BASE_URL ?>admin/ajax/user',
         type: 'GET',
         data: { id: userId },
         dataType: 'json',
@@ -228,7 +228,7 @@ include __DIR__ . '/../includes/admin-header.php';
       var button = $(event.relatedTarget);
       var userId = button.data('id');
       $.ajax({
-        url: '<?= BASE_URL ?>admin/ajax/user.php',
+        url: '<?= BASE_URL ?>admin/ajax/user',
         type: 'GET',
         data: { id: userId },
         dataType: 'json',
@@ -245,7 +245,7 @@ include __DIR__ . '/../includes/admin-header.php';
       var button = $(event.relatedTarget);
       var userId = button.data('id');
       $.ajax({
-        url: '<?= BASE_URL ?>admin/ajax/user.php',
+        url: '<?= BASE_URL ?>admin/ajax/user',
         type: 'GET',
         data: { id: userId },
         dataType: 'json',

@@ -12,7 +12,7 @@ include __DIR__ . '/../includes/admin-header.php';
 ?>
 
 <div class="mb-4 d-flex justify-content-between align-items-center">
-  <a href="<?= BASE_URL ?>admin/reports.php" class="btn btn-outline-secondary btn-sm">
+  <a href="<?= BASE_URL ?>admin/reports" class="btn btn-outline-secondary btn-sm">
     <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Menu Laporan
   </a>
 </div>
@@ -43,7 +43,7 @@ include __DIR__ . '/../includes/admin-header.php';
         <h5 class="mb-0 fw-bold">Laporan Transaksi Penjualan</h5>
         <span class="text-muted small">Periode: <?= $tanggalAwal ?> s/d <?= $tanggalAkhir ?></span>
       </div>
-      <a href="<?= BASE_URL ?>admin/export-csv.php?tanggal-awal=<?= urlencode($tanggalAwal) ?>&tanggal-akhir=<?= urlencode($tanggalAkhir) ?>" class="btn btn-success btn-sm">
+      <a href="<?= BASE_URL ?>admin/export-csv?tanggal-awal=<?= urlencode($tanggalAwal) ?>&tanggal-akhir=<?= urlencode($tanggalAkhir) ?>" class="btn btn-success btn-sm">
         <i class="fa-solid fa-file-csv me-1"></i> Unduh File CSV
       </a>
     </div>
@@ -84,7 +84,7 @@ include __DIR__ . '/../includes/admin-header.php';
   <div class="card shadow-sm border-0">
     <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
       <h5 class="mb-0 fw-bold">Laporan Data Produk</h5>
-      <a href="<?= BASE_URL ?>admin/export-csv.php?download-produk=1" class="btn btn-success btn-sm">
+      <a href="<?= BASE_URL ?>admin/export-csv?download-produk=1" class="btn btn-success btn-sm">
         <i class="fa-solid fa-file-csv me-1"></i> Unduh File CSV
       </a>
     </div>
@@ -123,7 +123,7 @@ include __DIR__ . '/../includes/admin-header.php';
   <div class="card shadow-sm border-0">
     <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
       <h5 class="mb-0 fw-bold">Laporan Data Pengguna</h5>
-      <a href="<?= BASE_URL ?>admin/export-csv.php?download-user=1" class="btn btn-success btn-sm">
+      <a href="<?= BASE_URL ?>admin/export-csv?download-user=1" class="btn btn-success btn-sm">
         <i class="fa-solid fa-file-csv me-1"></i> Unduh File CSV
       </a>
     </div>
@@ -153,7 +153,7 @@ include __DIR__ . '/../includes/admin-header.php';
     </div>
   </div>
 <?php else: ?>
-  <p class="text-muted text-center py-5">Silakan pilih laporan yang ingin dibuat di <a href="<?= BASE_URL ?>admin/reports.php">Menu Laporan</a>.</p>
+  <p class="text-muted text-center py-5">Silakan pilih laporan yang ingin dibuat di <a href="<?= BASE_URL ?>admin/reports">Menu Laporan</a>.</p>
 <?php endif; ?>
 
 <?php include __DIR__ . '/../includes/admin-footer.php'; ?>

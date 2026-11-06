@@ -6,7 +6,7 @@ use App\ProductService;
 
 if (!AuthService::isLoggedIn()) {
     flash('warning', 'Silakan masuk terlebih dahulu untuk berbelanja.');
-    redirect('auth/login.php');
+    redirect('auth/login');
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['product_id'])) {
@@ -16,12 +16,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['product_id'])) {
     $product = ProductService::getById($productId);
     if (!$product) {
         flash('danger', 'Produk tidak ditemukan.');
-        redirect('index.php');
+        redirect('');
     }
 
     if ($product['stok'] < $quantity) {
         flash('warning', "Stok {$product['nama_produk']} hanya tersisa {$product['stok']}.");
-        $redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'index.php';
+        $redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : BASE_URL;
         header("Location: {$redirect}");
         exit();
     }
@@ -56,9 +56,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['product_id'])) {
         $_SESSION['cart_status'] = 1;
     }
 
-    $redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : BASE_URL . 'index.php';
+    $redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : BASE_URL;
     header("Location: {$redirect}");
     exit();
 }
 
-redirect('index.php');
+redirect('');

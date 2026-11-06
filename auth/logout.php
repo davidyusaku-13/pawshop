@@ -10,4 +10,4 @@ foreach ($cookie_names as $cookie_name) {
 }
 
 flash('info', 'Anda telah berhasil keluar.');
-redirect('auth/login.php');
+redirect('auth/login');

@@ -4,7 +4,7 @@ require_once __DIR__ . '/../config/database.php';
 use App\AuthService;
 
 if (AuthService::isLoggedIn()) {
-    redirect('index.php');
+    redirect('');
 }
 
 $status = "";
@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
     } else {
         if (AuthService::register($username, $password, $phone_number, 'user')) {
             flash('success', 'Pendaftaran akun berhasil! Silakan masuk dengan akun baru Anda.');
-            redirect('auth/login.php');
+            redirect('auth/login');
         } else {
             $status = '<div class="alert alert-danger py-2 small" role="alert"><i class="fa-solid fa-circle-exclamation me-1"></i> Username sudah terdaftar. Silakan pilih username lain!</div>';
         }
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
         <div class="col-md-7">
           <div class="auth-form-side">
             <div class="mb-4">
-              <a href="<?= BASE_URL ?>index.php">
+              <a href="<?= BASE_URL ?>">
                 <img src="<?= BASE_URL ?>assets/images/brand/logo.png" height="38" alt="Pawshop Logo">
               </a>
               <h3 class="fw-bold text-dark mt-3 mb-1">Buat Akun Baru</h3>
@@ -116,9 +116,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
 
             <div class="text-center pt-2 border-top">
               <p class="text-muted small mb-1">
-                Sudah memiliki akun? <a href="<?= BASE_URL ?>auth/login.php" class="fw-bold text-dark text-decoration-none">Masuk di sini</a>
+                Sudah memiliki akun? <a href="<?= BASE_URL ?>auth/login" class="fw-bold text-dark text-decoration-none">Masuk di sini</a>
               </p>
-              <a href="<?= BASE_URL ?>index.php" class="text-muted small text-decoration-none">
+              <a href="<?= BASE_URL ?>" class="text-muted small text-decoration-none">
                 <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Beranda Katalog
               </a>
             </div>

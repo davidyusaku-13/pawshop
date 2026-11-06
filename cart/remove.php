@@ -14,6 +14,6 @@ if (isset($_GET['product_id']) && isset($_SESSION['cart'])) {
     $_SESSION['cart'] = array_values($_SESSION['cart']);
 }
 
-$redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : BASE_URL . 'index.php';
+$redirect = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : BASE_URL;
 header("Location: {$redirect}");
 exit();

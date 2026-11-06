@@ -154,14 +154,14 @@ class AuthService
     public static function requireAuth(): void
     {
         if (!self::isLoggedIn()) {
-            redirect('auth/login.php');
+            redirect('auth/login');
         }
     }
 
     public static function requireAdmin(): void
     {
         if (!self::isAdmin()) {
-            redirect('auth/login.php');
+            redirect('auth/login');
         }
     }
 }

@@ -20,7 +20,7 @@ use App\ProductService;
   </div>
 
   <?php if ($kategoriId || !empty($search)): ?>
-    <a href="<?= BASE_URL ?>index.php" class="btn btn-outline-secondary btn-sm rounded-pill px-3 btn-reset-filter">
+    <a href="<?= BASE_URL ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3 btn-reset-filter">
       <i class="fa-solid fa-rotate-left me-1"></i> Reset Filter
     </a>
   <?php endif; ?>
@@ -28,11 +28,11 @@ use App\ProductService;
 
 <!-- Category Pills (Instant Filter) -->
 <div class="d-flex align-items-center gap-2 overflow-x-auto pb-2 mb-4">
-  <a href="<?= BASE_URL ?>index.php" class="category-chip <?= empty($kategoriId) ? 'active' : '' ?>">
+  <a href="<?= BASE_URL ?>" class="category-chip <?= empty($kategoriId) ? 'active' : '' ?>">
     <i class="fa-solid fa-border-all"></i> Semua Produk
   </a>
   <?php foreach ($allCategories as $c): ?>
-    <a href="<?= BASE_URL ?>index.php?k=<?= $c['id'] ?>" class="category-chip <?= ($kategoriId == $c['id']) ? 'active' : '' ?>">
+    <a href="<?= BASE_URL ?>?k=<?= $c['id'] ?>" class="category-chip <?= ($kategoriId == $c['id']) ? 'active' : '' ?>">
       <i class="fa-solid fa-paw"></i> <?= htmlspecialchars($c['name']) ?>
     </a>
   <?php endforeach; ?>
@@ -48,7 +48,7 @@ use App\ProductService;
         <div class="card product-card h-100 border bg-white shadow-none">
           <!-- Thumbnail Wrapper with Badge -->
           <div class="product-thumb-wrapper position-relative">
-            <a href="<?= BASE_URL ?>customer/product-detail.php?id=<?= $row['id'] ?>">
+            <a href="<?= BASE_URL ?>customer/product-detail?id=<?= $row['id'] ?>">
               <img src="<?= BASE_URL ?>assets/images/<?= htmlspecialchars($row['gambar'] ?: 'x.jpg') ?>" 
                    class="card-img-top object-fit-cover w-100" 
                    style="height: 220px;" 
@@ -80,7 +80,7 @@ use App\ProductService;
           <div class="card-body p-3 d-flex flex-column justify-content-between">
             <div>
               <h6 class="card-title fw-bold text-truncate mb-1" title="<?= htmlspecialchars($row['nama_produk']) ?>">
-                <a href="<?= BASE_URL ?>customer/product-detail.php?id=<?= $row['id'] ?>" class="text-dark text-decoration-none">
+                <a href="<?= BASE_URL ?>customer/product-detail?id=<?= $row['id'] ?>" class="text-dark text-decoration-none">
                   <?= htmlspecialchars($row['nama_produk']) ?>
                 </a>
               </h6>
@@ -92,10 +92,10 @@ use App\ProductService;
 
             <!-- Action Buttons: Detail & Quick Add to Cart -->
             <div class="d-flex gap-2 mt-3 pt-2 border-top">
-              <a href="<?= BASE_URL ?>customer/product-detail.php?id=<?= $row['id'] ?>" class="btn btn-outline-secondary btn-sm flex-grow-1" title="Lihat Rincian">
+              <a href="<?= BASE_URL ?>customer/product-detail?id=<?= $row['id'] ?>" class="btn btn-outline-secondary btn-sm flex-grow-1" title="Lihat Rincian">
                 Detail
               </a>
-              <form action="<?= BASE_URL ?>cart/add.php" method="POST" class="d-inline">
+              <form action="<?= BASE_URL ?>cart/add" method="POST" class="d-inline">
                 <input type="hidden" name="product_id" value="<?= $row['id'] ?>">
                 <input type="hidden" name="quantity" value="1">
                 <button type="submit" class="btn btn-pawshop btn-sm fw-semibold" <?= ($row['stok'] <= 0) ? 'disabled' : '' ?> title="Masukkan ke Keranjang">
@@ -114,7 +114,7 @@ use App\ProductService;
       </div>
       <h5 class="fw-bold text-dark">Tidak Ada Produk Ditemukan</h5>
       <p class="text-muted small">Coba cari dengan kata kunci lain atau pilih kategori yang berbeda.</p>
-      <a href="<?= BASE_URL ?>index.php" class="btn btn-pawshop btn-sm rounded-pill px-4 mt-2 btn-reset-filter">
+      <a href="<?= BASE_URL ?>" class="btn btn-pawshop btn-sm rounded-pill px-4 mt-2 btn-reset-filter">
         Lihat Semua Produk
       </a>
     </div>

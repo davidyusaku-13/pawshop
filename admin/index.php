@@ -114,7 +114,7 @@ include __DIR__ . '/../includes/admin-header.php';
     <div class="card shadow-sm h-100">
       <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
         <h6 class="fw-bold mb-0"><i class="fa-solid fa-chart-pie me-2 text-primary"></i> Penjualan Berdasarkan Kategori</h6>
-        <a href="<?= BASE_URL ?>admin/reports.php" class="btn btn-sm btn-outline-secondary">Rincian &rarr;</a>
+        <a href="<?= BASE_URL ?>admin/reports" class="btn btn-sm btn-outline-secondary">Rincian &rarr;</a>
       </div>
       <div class="card-body">
         <?php
@@ -162,7 +162,7 @@ include __DIR__ . '/../includes/admin-header.php';
       </div>
       <div class="card-body d-flex flex-column justify-content-between">
         <div class="list-group list-group-flush">
-          <a href="<?= BASE_URL ?>admin/products.php" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+          <a href="<?= BASE_URL ?>admin/products" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
             <div>
               <i class="fa-solid fa-plus-circle text-success me-2"></i>
               <strong>Kelola & Tambah Produk</strong>
@@ -170,7 +170,7 @@ include __DIR__ . '/../includes/admin-header.php';
             </div>
             <i class="fa-solid fa-chevron-right text-muted small"></i>
           </a>
-          <a href="<?= BASE_URL ?>admin/transactions.php" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+          <a href="<?= BASE_URL ?>admin/transactions" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
             <div>
               <i class="fa-solid fa-receipt text-primary me-2"></i>
               <strong>Verifikasi Pembayaran</strong>
@@ -178,7 +178,7 @@ include __DIR__ . '/../includes/admin-header.php';
             </div>
             <i class="fa-solid fa-chevron-right text-muted small"></i>
           </a>
-          <a href="<?= BASE_URL ?>admin/reports.php" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
+          <a href="<?= BASE_URL ?>admin/reports" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3">
             <div>
               <i class="fa-solid fa-file-csv text-info me-2"></i>
               <strong>Ekspor Laporan Penjualan</strong>
@@ -222,7 +222,7 @@ include __DIR__ . '/../includes/admin-header.php';
                     <td><span class="badge bg-light text-dark border"><?= htmlspecialchars($p['kategori_name']) ?></span></td>
                     <td class="text-center font-bold text-danger fw-bold"><?= $p['stok'] ?></td>
                     <td class="text-center">
-                      <a href="<?= BASE_URL ?>admin/products.php" class="btn btn-sm btn-outline-primary">Kelola</a>
+                      <a href="<?= BASE_URL ?>admin/products" class="btn btn-sm btn-outline-primary">Kelola</a>
                     </td>
                   </tr>
                 <?php endforeach; ?>
@@ -272,7 +272,7 @@ include __DIR__ . '/../includes/admin-header.php';
                     <td class="fw-bold text-primary"><?= format_rupiah($o['total_amount']) ?></td>
                     <td><span class="badge bg-warning text-dark"><?= htmlspecialchars($o['status_name']) ?></span></td>
                     <td class="text-center">
-                      <a href="<?= BASE_URL ?>admin/transactions.php" class="btn btn-sm btn-outline-warning text-dark fw-semibold">Periksa &rarr;</a>
+                      <a href="<?= BASE_URL ?>admin/transactions" class="btn btn-sm btn-outline-warning text-dark fw-semibold">Periksa &rarr;</a>
                     </td>
                   </tr>
                 <?php endforeach; ?>

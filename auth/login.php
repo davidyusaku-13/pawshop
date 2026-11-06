@@ -5,9 +5,9 @@ use App\AuthService;
 
 if (AuthService::isLoggedIn()) {
     if (AuthService::isAdmin()) {
-        redirect('admin/index.php');
+        redirect('admin/');
     }
-    redirect('index.php');
+    redirect('');
 }
 
 $error = '';
@@ -20,9 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
         if (AuthService::login($username, $password, $rememberMe)) {
             flash('success', "Selamat datang kembali, " . htmlspecialchars($_SESSION['username']) . "!");
             if (AuthService::isAdmin()) {
-                redirect('admin/index.php');
+                redirect('admin/');
             }
-            redirect('index.php');
+            redirect('');
         } else {
             $error = 'Username atau kata sandi yang Anda masukkan salah!';
         }
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
         <div class="col-md-7">
           <div class="auth-form-side">
             <div class="mb-4">
-              <a href="<?= BASE_URL ?>index.php">
+              <a href="<?= BASE_URL ?>">
                 <img src="<?= BASE_URL ?>assets/images/brand/logo.png" height="38" alt="Pawshop Logo">
               </a>
               <h3 class="fw-bold text-dark mt-3 mb-1">Masuk ke Akun</h3>
@@ -120,9 +120,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
 
             <div class="text-center pt-2 border-top">
               <p class="text-muted small mb-1">
-                Belum memiliki akun? <a href="<?= BASE_URL ?>auth/register.php" class="fw-bold text-dark text-decoration-none">Daftar Akun Baru</a>
+                Belum memiliki akun? <a href="<?= BASE_URL ?>auth/register" class="fw-bold text-dark text-decoration-none">Daftar Akun Baru</a>
               </p>
-              <a href="<?= BASE_URL ?>index.php" class="text-muted small text-decoration-none">
+              <a href="<?= BASE_URL ?>" class="text-muted small text-decoration-none">
                 <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Beranda Katalog
               </a>
             </div>

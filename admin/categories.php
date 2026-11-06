@@ -173,7 +173,7 @@ include __DIR__ . '/../includes/admin-header.php';
       var button = $(event.relatedTarget);
       var categoryId = button.data('id');
       $.ajax({
-        url: '<?= BASE_URL ?>admin/ajax/category.php',
+        url: '<?= BASE_URL ?>admin/ajax/category',
         type: 'GET',
         data: { id: categoryId },
         dataType: 'json',
@@ -190,7 +190,7 @@ include __DIR__ . '/../includes/admin-header.php';
       var button = $(event.relatedTarget);
       var categoryId = button.data('id');
       $.ajax({
-        url: '<?= BASE_URL ?>admin/ajax/category.php',
+        url: '<?= BASE_URL ?>admin/ajax/category',
         type: 'GET',
         data: { id: categoryId },
         dataType: 'json',

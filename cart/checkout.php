@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkout'])) {
     $cartItems = $_SESSION['cart'] ?? [];
     if (empty($cartItems)) {
         flash('warning', 'Keranjang belanja Anda masih kosong.');
-        redirect('index.php');
+        redirect('');
     }
 
     $userId = AuthService::getCurrentUserId();
@@ -22,11 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['checkout'])) {
     if ($orderId) {
         unset($_SESSION['cart']);
         flash('success', "Pesanan #{$orderId} berhasil dibuat! Silakan lakukan pembayaran.");
-        redirect('customer/transactions.php');
+        redirect('customer/transactions');
     } else {
         flash('danger', $error ?: 'Gagal memproses pesanan. Silakan coba kembali.');
-        redirect('index.php');
+        redirect('');
     }
 }
 
-redirect('index.php');
+redirect('');

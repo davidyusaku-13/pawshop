@@ -117,7 +117,7 @@ $pageTitle = "Pawshop | Nota Pesanan " . $order['id'];
         <button onclick="window.print()" class="btn btn-primary me-2">
           Cetak Nota
         </button>
-        <a href="<?= BASE_URL ?>customer/transactions.php" class="btn btn-outline-secondary">
+        <a href="<?= BASE_URL ?>customer/transactions" class="btn btn-outline-secondary">
           Kembali
         </a>
       </div>

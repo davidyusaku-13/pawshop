@@ -17,7 +17,7 @@ include __DIR__ . '/../includes/admin-header.php';
     <h4 class="fw-bold mb-1">Pusat Laporan & Rekap</h4>
     <p class="text-muted small mb-0">Cetak rekap data transaksi, katalog produk, dan daftar pengguna</p>
   </div>
-  <a href="<?= BASE_URL ?>admin/index.php" class="btn btn-outline-secondary btn-sm">
+  <a href="<?= BASE_URL ?>admin/" class="btn btn-outline-secondary btn-sm">
     <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Dasbor
   </a>
 </div>
@@ -33,7 +33,7 @@ include __DIR__ . '/../includes/admin-header.php';
       </div>
       <div class="card-body p-4">
         <p class="text-muted small">Tentukan rentang tanggal untuk melihat tabel transaksi atau mengekspor berkas CSV.</p>
-        <form action="<?= BASE_URL ?>admin/generate-report.php" method="POST">
+        <form action="<?= BASE_URL ?>admin/generate-report" method="POST">
           <div class="mb-3">
             <label class="form-label small fw-semibold">Tanggal Mulai</label>
             <input class="form-control" type="date" name="tanggal-awal" value="<?= date('Y-m-d', strtotime('-1 day')) ?>" required>
@@ -64,7 +64,7 @@ include __DIR__ . '/../includes/admin-header.php';
             <span class="small text-muted">Total Produk Terdaftar</span>
           </div>
         </div>
-        <form action="<?= BASE_URL ?>admin/generate-report.php" method="POST">
+        <form action="<?= BASE_URL ?>admin/generate-report" method="POST">
           <button class="btn btn-success w-100" type="submit" name="generate-produk">
             <i class="fa-solid fa-file-lines me-1"></i> Buat Laporan Produk
           </button>
@@ -87,7 +87,7 @@ include __DIR__ . '/../includes/admin-header.php';
             <span class="small text-muted">Total Pengguna Terdaftar</span>
           </div>
         </div>
-        <form action="<?= BASE_URL ?>admin/generate-report.php" method="POST">
+        <form action="<?= BASE_URL ?>admin/generate-report" method="POST">
           <button class="btn btn-info text-white w-100" type="submit" name="generate-user">
             <i class="fa-solid fa-file-lines me-1"></i> Buat Laporan Pengguna
           </button>

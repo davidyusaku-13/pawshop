@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit']) && !empty($
             flash('danger', $error ?: 'Gagal mengunggah bukti pembayaran!');
         }
     }
-    redirect('customer/transactions.php');
+    redirect('customer/transactions');
 }
 
 $orders = OrderService::getOrdersByUser($userId);
@@ -37,7 +37,7 @@ include __DIR__ . '/../includes/navbar.php';
       <h3 class="fw-bold mb-1">Riwayat Transaksi Saya</h3>
       <p class="text-muted small mb-0">Pantau status pembayaran, proses pengiriman, dan nota belanja Anda</p>
     </div>
-    <a href="<?= BASE_URL ?>index.php" class="btn btn-outline-dark btn-sm rounded-pill px-3">
+    <a href="<?= BASE_URL ?>" class="btn btn-outline-dark btn-sm rounded-pill px-3">
       <i class="fa-solid fa-basket-shopping me-1"></i> Belanja Lagi
     </a>
   </div>
@@ -126,10 +126,10 @@ include __DIR__ . '/../includes/navbar.php';
           <!-- Card Footer -->
           <div class="card-footer bg-white border-top d-flex flex-wrap justify-content-between align-items-center py-3 px-4 gap-2">
             <div class="d-flex gap-2">
-              <a href="<?= BASE_URL ?>customer/transaction-detail.php?id=<?= $row['id'] ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+              <a href="<?= BASE_URL ?>customer/transaction-detail?id=<?= $row['id'] ?>" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
                 <i class="fa-solid fa-list me-1"></i> Rincian Pesanan
               </a>
-              <a href="<?= BASE_URL ?>customer/invoice.php?id=<?= $row['id'] ?>" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+              <a href="<?= BASE_URL ?>customer/invoice?id=<?= $row['id'] ?>" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
                 <i class="fa-solid fa-receipt me-1"></i> Nota
               </a>
             </div>
@@ -155,7 +155,7 @@ include __DIR__ . '/../includes/navbar.php';
       </div>
       <h5 class="fw-bold text-dark">Belum Ada Transaksi</h5>
       <p class="text-muted small">Anda belum melakukan pemesanan apa pun. Mulai penuhi kebutuhan anabul kesayangan Anda!</p>
-      <a href="<?= BASE_URL ?>index.php" class="btn btn-pawshop btn-sm rounded-pill px-4 mx-auto mt-2">
+      <a href="<?= BASE_URL ?>" class="btn btn-pawshop btn-sm rounded-pill px-4 mx-auto mt-2">
         Mulai Belanja Sekarang
       </a>
     </div>

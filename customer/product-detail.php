@@ -8,7 +8,7 @@ $product = $id > 0 ? ProductService::getById($id) : null;
 
 if (!$product) {
     flash('danger', 'Produk yang Anda cari tidak ditemukan.');
-    redirect('index.php');
+    redirect('');
 }
 
 $pageTitle = "Pawshop | " . $product['nama_produk'];
@@ -21,9 +21,9 @@ include __DIR__ . '/../includes/navbar.php';
   <!-- Breadcrumb -->
   <nav aria-label="breadcrumb" class="mb-4">
     <ol class="breadcrumb small">
-      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>index.php" class="text-decoration-none text-muted"><i class="fa-solid fa-house me-1"></i> Beranda</a></li>
+      <li class="breadcrumb-item"><a href="<?= BASE_URL ?>" class="text-decoration-none text-muted"><i class="fa-solid fa-house me-1"></i> Beranda</a></li>
       <?php if (!empty($product['kategori'])): ?>
-        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>index.php?k=<?= $product['category_id'] ?>" class="text-decoration-none text-muted"><?= htmlspecialchars($product['kategori']) ?></a></li>
+        <li class="breadcrumb-item"><a href="<?= BASE_URL ?>?k=<?= $product['category_id'] ?>" class="text-decoration-none text-muted"><?= htmlspecialchars($product['kategori']) ?></a></li>
       <?php endif; ?>
       <li class="breadcrumb-item active fw-semibold text-truncate" style="max-width: 320px;" aria-current="page"><?= htmlspecialchars($product['nama_produk']) ?></li>
     </ol>
@@ -81,7 +81,7 @@ include __DIR__ . '/../includes/navbar.php';
         </div>
 
         <!-- Purchase Action Form -->
-        <form action="<?= BASE_URL ?>cart/add.php" method="POST" autocomplete="off" class="mb-4">
+        <form action="<?= BASE_URL ?>cart/add" method="POST" autocomplete="off" class="mb-4">
           <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
 
           <div class="mb-3">

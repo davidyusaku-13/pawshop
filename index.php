@@ -185,9 +185,9 @@ include __DIR__ . '/includes/navbar.php';
     // Also support top navbar category links when on homepage
     document.querySelectorAll('#mynavbar .dropdown-menu a').forEach(function(navLink) {
       var href = navLink.getAttribute('href');
-      if (href && (href.indexOf('index.php?k=') !== -1 || href.endsWith('index.php'))) {
+      if (href && (href.indexOf('?k=') !== -1 || href === '/' || href.endsWith('index.php'))) {
         navLink.addEventListener('click', function(e) {
-          if (window.location.pathname.endsWith('index.php') || window.location.pathname === '/') {
+          if (window.location.pathname.endsWith('index.php') || window.location.pathname === '/' || window.location.pathname === '') {
             e.preventDefault();
             loadCatalog(href, true);
             catalogSection.scrollIntoView({ behavior: 'smooth', block: 'start' });

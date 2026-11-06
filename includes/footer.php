@@ -7,8 +7,8 @@
         <span>&copy; <?= date('Y') ?> Pawshop Pet Supplies. Seluruh hak cipta dilindungi.</span>
       </div>
       <div>
-        <a href="<?= BASE_URL ?>index.php" class="text-muted text-decoration-none me-3">Katalog</a>
-        <a href="<?= BASE_URL ?>customer/transactions.php" class="text-muted text-decoration-none">Riwayat Belanja</a>
+        <a href="<?= BASE_URL ?>" class="text-muted text-decoration-none me-3">Katalog</a>
+        <a href="<?= BASE_URL ?>customer/transactions" class="text-muted text-decoration-none">Riwayat Belanja</a>
       </div>
     </div>
   </footer>
@@ -32,7 +32,7 @@
         formData.append('quantity', newQty);
         formData.append('ajax', '1');
 
-        fetch('<?= BASE_URL ?>cart/update.php', {
+        fetch('<?= BASE_URL ?>cart/update', {
           method: 'POST',
           body: formData,
           headers: {
@@ -82,7 +82,7 @@
             updateCartItem(prodId, cur - 1, card);
           } else {
             if (confirm('Hapus produk ini dari keranjang belanja?')) {
-              window.location.href = '<?= BASE_URL ?>cart/remove.php?product_id=' + prodId;
+              window.location.href = '<?= BASE_URL ?>cart/remove?product_id=' + prodId;
             }
           }
         });

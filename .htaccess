@@ -2,10 +2,30 @@
 # PAWSHOP APACHE CONFIGURATION (.htaccess)
 # ==============================================================================
 
-# Protect sensitive source and config directories
+# Protect sensitive source and config directories & Clean URLs
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  Options -MultiViews
+
+  RewriteBase /
+
+  # Protect sensitive source and config directories
   RewriteRule ^(config|src|database)/ - [F,L,NC]
+
+  # Redirect direct requests for index.php to directory root /
+  RewriteCond %{REQUEST_METHOD} !POST
+  RewriteCond %{THE_REQUEST} \s/+(.*?/)?index\.php[\s?] [NC]
+  RewriteRule ^(.*)index\.php$ /$1 [R=301,L]
+
+  # Redirect direct requests from /example.php to /example (clean URLs)
+  RewriteCond %{REQUEST_METHOD} !POST
+  RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
+  RewriteRule ^ /%1 [R=301,L]
+
+  # Internally rewrite clean extensionless URLs to their .php equivalent
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME}\.php -f
+  RewriteRule ^(.+?)/?$ $1.php [L,QSA]
 </IfModule>
 
 # ------------------------------------------------------------------------------

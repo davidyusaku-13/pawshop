@@ -175,7 +175,7 @@ include __DIR__ . '/../includes/admin-header.php';
       var button = $(event.relatedTarget);
       var statusId = button.data('id');
       $.ajax({
-        url: '<?= BASE_URL ?>admin/ajax/status.php',
+        url: '<?= BASE_URL ?>admin/ajax/status',
         type: 'GET',
         data: { id: statusId },
         dataType: 'json',
@@ -192,7 +192,7 @@ include __DIR__ . '/../includes/admin-header.php';
       var button = $(event.relatedTarget);
       var statusId = button.data('id');
       $.ajax({
-        url: '<?= BASE_URL ?>admin/ajax/status.php',
+        url: '<?= BASE_URL ?>admin/ajax/status',
         type: 'GET',
         data: { id: statusId },
         dataType: 'json',

@@ -13,7 +13,7 @@ $cartItemCount = !empty($_SESSION['cart']) ? array_sum(array_column($_SESSION['c
   <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm py-2">
     <div class="container">
       <!-- Brand Logo -->
-      <a class="navbar-brand d-flex align-items-center me-3" href="<?= BASE_URL ?>index.php">
+      <a class="navbar-brand d-flex align-items-center me-3" href="<?= BASE_URL ?>">
         <img src="<?= BASE_URL ?>assets/images/brand/logo.png" height="34" alt="Pawshop">
       </a>
 
@@ -35,7 +35,7 @@ $cartItemCount = !empty($_SESSION['cart']) ? array_sum(array_column($_SESSION['c
       <!-- Collapsible Nav & Search -->
       <div class="collapse navbar-collapse" id="mynavbar">
         <!-- Search Bar (Centered & Spacious) -->
-        <form class="d-flex flex-grow-1 mx-lg-4 my-2 my-lg-0" action="<?= BASE_URL ?>index.php" method="GET">
+        <form class="d-flex flex-grow-1 mx-lg-4 my-2 my-lg-0" action="<?= BASE_URL ?>" method="GET">
           <div class="input-group w-100">
             <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3 text-muted">
               <i class="fa-solid fa-magnifying-glass"></i>
@@ -56,7 +56,7 @@ $cartItemCount = !empty($_SESSION['cart']) ? array_sum(array_column($_SESSION['c
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2">
               <li>
-                <a class="dropdown-item py-2 <?= empty($kategoriId) ? 'active fw-bold' : '' ?>" href="<?= BASE_URL ?>index.php">
+                <a class="dropdown-item py-2 <?= empty($kategoriId) ? 'active fw-bold' : '' ?>" href="<?= BASE_URL ?>">
                   <i class="fa-solid fa-border-all me-2 text-muted"></i> Semua Produk
                 </a>
               </li>
@@ -64,7 +64,7 @@ $cartItemCount = !empty($_SESSION['cart']) ? array_sum(array_column($_SESSION['c
               <?php foreach ($navCategories as $catRow): ?>
                 <?php $catActive = (isset($kategoriId) && (int)$kategoriId === (int)$catRow['id']) ? 'active fw-bold' : ''; ?>
                 <li>
-                  <a class="dropdown-item py-2 <?= $catActive ?>" href="<?= BASE_URL ?>index.php?k=<?= $catRow['id'] ?>">
+                  <a class="dropdown-item py-2 <?= $catActive ?>" href="<?= BASE_URL ?>?k=<?= $catRow['id'] ?>">
                     <i class="fa-solid fa-tag me-2 text-muted"></i> <?= htmlspecialchars($catRow['name']) ?>
                   </a>
                 </li>
@@ -103,25 +103,25 @@ $cartItemCount = !empty($_SESSION['cart']) ? array_sum(array_column($_SESSION['c
                 </li>
                 <?php if ($isAdmin): ?>
                   <li>
-                    <a class="dropdown-item py-2 text-danger fw-semibold" href="<?= BASE_URL ?>admin/index.php">
+                    <a class="dropdown-item py-2 text-danger fw-semibold" href="<?= BASE_URL ?>admin/">
                       <i class="fa-solid fa-shield-halved me-2"></i> Dasbor Admin
                     </a>
                   </li>
                   <li><hr class="dropdown-divider"></li>
                 <?php endif; ?>
                 <li>
-                  <a class="dropdown-item py-2" href="<?= BASE_URL ?>customer/profile.php">
+                  <a class="dropdown-item py-2" href="<?= BASE_URL ?>customer/profile">
                     <i class="fa-solid fa-user me-2 text-muted"></i> Profil Saya
                   </a>
                 </li>
                 <li>
-                  <a class="dropdown-item py-2" href="<?= BASE_URL ?>customer/transactions.php">
+                  <a class="dropdown-item py-2" href="<?= BASE_URL ?>customer/transactions">
                     <i class="fa-solid fa-clock-rotate-left me-2 text-muted"></i> Riwayat Belanja
                   </a>
                 </li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
-                  <a class="dropdown-item py-2 text-danger" href="<?= BASE_URL ?>auth/logout.php">
+                  <a class="dropdown-item py-2 text-danger" href="<?= BASE_URL ?>auth/logout">
                     <i class="fa-solid fa-arrow-right-from-bracket me-2"></i> Keluar
                   </a>
                 </li>
@@ -129,10 +129,10 @@ $cartItemCount = !empty($_SESSION['cart']) ? array_sum(array_column($_SESSION['c
             </li>
           <?php else: ?>
             <li class="nav-item d-flex align-items-center gap-2 mt-2 mt-lg-0">
-              <a href="<?= BASE_URL ?>auth/login.php" class="btn btn-outline-dark btn-sm rounded-pill px-3 py-1 fw-semibold">
+              <a href="<?= BASE_URL ?>auth/login" class="btn btn-outline-dark btn-sm rounded-pill px-3 py-1 fw-semibold">
                 Masuk
               </a>
-              <a href="<?= BASE_URL ?>auth/register.php" class="btn btn-pawshop btn-sm rounded-pill px-3 py-1 fw-semibold">
+              <a href="<?= BASE_URL ?>auth/register" class="btn btn-pawshop btn-sm rounded-pill px-3 py-1 fw-semibold">
                 Daftar
               </a>
             </li>

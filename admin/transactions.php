@@ -45,7 +45,7 @@ include __DIR__ . '/../includes/admin-header.php';
     <h4 class="fw-bold mb-1">Daftar Transaksi Pesanan</h4>
     <p class="text-muted small mb-0">Verifikasi bukti transfer dan perbarui status pengiriman pelanggan</p>
   </div>
-  <a href="<?= BASE_URL ?>admin/reports.php" class="btn btn-outline-dark btn-sm">
+  <a href="<?= BASE_URL ?>admin/reports" class="btn btn-outline-dark btn-sm">
     <i class="fa-solid fa-file-export me-1"></i> Rekap Laporan Penjualan
   </a>
 </div>
@@ -189,7 +189,7 @@ include __DIR__ . '/../includes/admin-header.php';
       var button = $(event.relatedTarget);
       var transId = button.data('id');
       $.ajax({
-        url: '<?= BASE_URL ?>admin/ajax/transaction.php',
+        url: '<?= BASE_URL ?>admin/ajax/transaction',
         type: 'GET',
         data: { id: transId },
         dataType: 'json',

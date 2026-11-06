@@ -42,7 +42,7 @@ $pageTitle = isset($pageTitle) ? $pageTitle : "Pawshop | Panel Admin";
         <h5 class="mb-0 fw-bold text-dark"><?= htmlspecialchars($pageTitle) ?></h5>
       </div>
       <div class="d-flex align-items-center gap-3">
-        <a href="<?= BASE_URL ?>index.php" target="_blank" class="btn btn-outline-dark btn-sm">
+        <a href="<?= BASE_URL ?>" target="_blank" class="btn btn-outline-dark btn-sm">
           <i class="fa-solid fa-store me-1"></i> Toko Utama
         </a>
       </div>

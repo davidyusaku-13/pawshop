@@ -93,7 +93,7 @@ include __DIR__ . '/../includes/navbar.php';
           <span class="text-muted small">Pesanan Selesai:</span>
           <span class="fw-bold text-success"><?= $completedOrders ?> Pesanan</span>
         </div>
-        <a href="<?= BASE_URL ?>customer/transactions.php" class="btn btn-outline-secondary btn-sm rounded-pill w-100 mt-3">
+        <a href="<?= BASE_URL ?>customer/transactions" class="btn btn-outline-secondary btn-sm rounded-pill w-100 mt-3">
           <i class="fa-solid fa-clock-rotate-left me-1"></i> Buka Riwayat Transaksi
         </a>
       </div>
@@ -143,7 +143,7 @@ include __DIR__ . '/../includes/navbar.php';
             <h6 class="fw-bold text-dark mb-1">Butuh Bantuan dengan Pesanan Anda?</h6>
             <p class="text-muted small mb-0">Tim Pawshop siap membantu setiap hari mulai pukul 08:00 - 21:00 WIB.</p>
           </div>
-          <a href="<?= BASE_URL ?>index.php" class="btn btn-outline-dark btn-sm rounded-pill px-3 flex-shrink-0">
+          <a href="<?= BASE_URL ?>" class="btn btn-outline-dark btn-sm rounded-pill px-3 flex-shrink-0">
             <i class="fa-solid fa-basket-shopping me-1"></i> Jelajahi Toko
           </a>
         </div>
